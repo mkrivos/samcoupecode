@@ -1,0 +1,4522 @@
+FREE:          EQU   &DA
+LOAD:          EQU   &103
+BOX:           EQU   &130
+ASCII:         EQU   &133
+FILE_INFO:     EQU   &18D
+NUM16:         EQU   35
+INDSIZ:        EQU   "z"-"A"*2  ;
+CR:            EQU   0         ; ASCII CARRIAGE RETURN
+SPACE:         EQU   &20       ; ASCII SPACE
+CTOK:          EQU   &71       ; TOKEN FOR UNCONDIT. OPND KW "C"
+CCOND:         EQU   &8B       ; TOKEN FOR CONDITIONAL OPND KW "C
+XYMASK:        EQU   &FB       ; MASK TO RECOGNISE IX/IY TOKENS
+IXORIY:        EQU   &1A       ; COMMON VALUE OF IX/IY TOKENS
+INTTOK:        EQU   &90       ; OPERAND TOKEN FOR "INTEGER"
+ORGTOK:        EQU   1      ; TOKEN FOR "ORG" PSEUDO-OP
+EQUTOK:        EQU   2      ; TOKEN FOR "EQU" PSEUDO-OP
+DEFLTK:        EQU   3      ; TOKEN FOR "DEFL" PSEUDO-OP
+DEFBTK:        EQU   5
+DEFWTK:        EQU   6
+DEFSTK:        EQU   7      ; TOKEN FOR "DEFS" PSEUDO-OP
+MDATTOK:       EQU   9       ; TOKEN FOR "MDAT" PSEUDO-OP
+DEFMTK:        EQU   8       ; TOKEN FOR "DEFM" PSUEDO-OP
+PLUTOK:        EQU   7       ; TOKEN FOR MONADIC PLUS
+MINTOK:        EQU   15        ; TOKEN FOR MONADIC MINUS
+LBTOK:         EQU   &B0       ; TOKEN FOR "("
+EXPTOK:        EQU   &35       ; TOKEN FOR EXPONENTIATION
+ASKTOK:        EQU   &3D       ; TOKEN FOR MULTIPLY
+MAXFSK:        EQU   10        ; MAX SIZE OF ARITHMETIC
+LABSIZ:        EQU   14
+MAXASK:        EQU   20      ; MAX SIZE OF ARITH STACK
+LBFSZ:         EQU   64      ; LINE BUFFER CAPACITY
+ACBSIZ:        EQU   64      ; SIZE OF ASSD CODE BUFFER
+SPERL:         EQU   5       ; NO OF SYMBOLS PER LINE  ???
+
+T#A:           EQU   128
+T#ADC:         EQU   T#A+1
+T#ADD:         EQU   T#ADC+1
+T#AF:          EQU   T#ADD+1
+T#AND:         EQU   T#AF+1
+T#B:           EQU   T#AND+1
+T#BC:          EQU   T#B+1
+T#BIT:         EQU   T#BC+1
+T#C:           EQU   T#BIT+1
+T#CALL:        EQU   T#C+1
+T#CCF:         EQU   T#CALL+1
+T#CP:          EQU   T#CCF+1
+T#CPD:         EQU   T#CP+1
+T#CPDR:        EQU   T#CPD+1
+T#CPI:         EQU   T#CPDR+1
+T#CPIR:        EQU   T#CPI+1
+T#CPL:         EQU   T#CPIR+1
+T#D:           EQU   T#CPL+1
+T#DAA:         EQU   T#D+1
+T#DE:          EQU   T#DAA+1
+T#DEC:         EQU   T#DE+1
+T#DEFB:        EQU   T#DEC+1
+T#DEFM:        EQU   T#DEFB+1
+T#DEFS:        EQU   T#DEFM+1
+T#DEFW:        EQU   T#DEFS+1
+T#DI:          EQU   T#DEFW+1
+T#DJNZ:        EQU   T#DI+1
+T#DUMP:        EQU   T#DJNZ+1
+T#E:           EQU   T#DUMP+1
+T#EI:          EQU   T#E+1
+T#EQU:         EQU   T#EI+1
+T#EX:          EQU   T#EQU+1
+T#EXX:         EQU   T#EX+1
+T#H:           EQU   T#EXX+1
+T#HALT:        EQU   T#H+1
+T#HL:          EQU   T#HALT+1
+T#I:           EQU   T#HL+1
+T#IM:          EQU   T#I+1
+T#IN:          EQU   T#IM+1
+T#INC:         EQU   T#IN+1
+T#IND:         EQU   T#INC+1
+T#INDR:        EQU   T#IND+1
+T#INI:         EQU   T#INDR+1
+T#INIR:        EQU   T#INI+1
+T#IX:          EQU   T#INIR+1
+T#IY:          EQU   T#IX+1
+T#JP:          EQU   T#IY+1
+T#JR:          EQU   T#JP+1
+T#L:           EQU   T#JR+1
+T#LD:          EQU   T#L+1
+T#LDD:         EQU   T#LD+1
+T#LDDR:        EQU   T#LDD+1
+T#LDI:         EQU   T#LDDR+1
+T#LDIR:        EQU   T#LDI+1
+T#LIST:        EQU   T#LDIR+1
+T#M:           EQU   T#LIST+1
+T#MDAT:        EQU   T#M+1
+T#NC:          EQU   T#MDAT+1
+T#NEG:         EQU   T#NC+1
+T#NOP:         EQU   T#NEG+1
+T#NZ:          EQU   T#NOP+1
+T#OFF:         EQU   T#NZ+1
+T#ON:          EQU   T#OFF+1
+T#OR:          EQU   T#ON+1
+T#ORG:         EQU   T#OR+1
+T#OTDR:        EQU   T#ORG+1
+T#OTIR:        EQU   T#OTDR+1
+T#OUT:         EQU   T#OTIR+1
+T#OUTD:        EQU   T#OUT+1
+T#OUTI:        EQU   T#OUTD+1
+T#P:           EQU   T#OUTI+1
+T#PE:          EQU   T#P+1
+T#PO:          EQU   T#PE+1
+T#POP:         EQU   T#PO+1
+T#PUSH:        EQU   T#POP+1
+T#R:           EQU   T#PUSH+1
+T#RES:         EQU   T#R+1
+T#RET:         EQU   T#RES+1
+T#RETI:        EQU   T#RET+1
+T#RETN:        EQU   T#RETI+1
+T#RL:          EQU   T#RETN+1
+T#RLA:         EQU   T#RL+1
+T#RLC:         EQU   T#RLA+1
+T#RLCA:        EQU   T#RLC+1
+T#RLD:         EQU   T#RLCA+1
+T#RR:          EQU   T#RLD+1
+T#RRA:         EQU   T#RR+1
+T#RRC:         EQU   T#RRA+1
+T#RRCA:        EQU   T#RRC+1
+T#RRD:         EQU   T#RRCA+1
+T#RST:         EQU   T#RRD+1
+T#SBC:         EQU   T#RST+1
+T#SCF:         EQU   T#SBC+1
+T#SET:         EQU   T#SCF+1
+T#SLA:         EQU   T#SET+1
+T#SLL:         EQU   T#SLA+1
+T#SP:          EQU   T#SLL+1
+T#SRA:         EQU   T#SP+1
+T#SRL:         EQU   T#SRA+1
+T#SUB:         EQU   T#SRL+1
+T#XOR:         EQU   T#SUB+1
+T#Z:           EQU   T#XOR+1
+T#DEFL:        EQU   T#Z+1
+T#DEFC:        EQU   T#DEFL+1
+
+
+
+               ORG   &8000
+               DUMP  9,0       ; 10
+
+               JP    START
+               JP    VYRAZX
+
+START:         CALL  INITA
+MAIN1:         LD    A,(PASSNO)
+               INC   A
+               LD    (PASSNO),A      ; SAVE IN PASS NO. STORE
+               CP    3
+               RET   Z             ; RETURN TO SYSTEM MONITOR
+               LD    HL,(MEMTOP)
+               LD    DE,(SYMEND)
+               AND   A
+               SBC   HL,DE
+               LD    (TABFREE),HL
+               CALL  PASS         ; PERFORM 1 PASS
+               LD    IX,INFO
+               SCF
+               RET   Z            ; ESC = ERROR
+               JR    MAIN1        ; GO DO ANOTHER PASS
+
+INFO:
+ERRORS:        DB    0
+LABELS:        DW    0
+TABFREE:       DW    0
+LINECNT:       DW    0
+DSTPTR:        DS    3
+CODESTART:     DS    3
+
+CO:            LD    A,C
+               JP    16
+
+;
+INDEX:         LD    HL,INDTAB
+               LD    DE,INDTAB+2
+               LD    BC,(SYMEND)
+               LD    (INDTAB),BC
+               LD    BC,INDSIZ-2
+               LDIR
+               LD    IX,SYMTAB
+               LD    IY,INDTAB
+               LD    C,"A"
+               LD    B,INDSIZ/2
+
+SADA:          LD    A,(IX)
+               AND   A
+               RET   Z
+
+               ADD   4
+               LD    E,A
+               LD    D,0
+               LD    A,(IX+1)
+SADA2:         CP    C
+               JR    NZ,NOTPRESENT
+               PUSH  IX
+               POP   HL
+               LD    (IY),L
+               INC   IY
+               LD    (IY),H
+               INC   IY
+               ADD   IX,DE
+SADA4:         LD    A,(IX)
+               AND   A
+               RET   Z
+               LD    A,(IX+1)
+               CP    C
+               JR    NZ,SADA3
+               LD    A,(IX)
+               ADD   4
+               LD    E,A
+               LD    D,0
+               ADD   IX,DE
+               JR    SADA4
+SADA3:         INC   C
+               DJNZ  SADA
+               RET
+NOTPRESENT:    INC   IY
+               INC   IY
+               INC   C
+               JR    SADA2
+;*
+;PRINT LINE AT POS 13,1 FROM LINBUF
+EXPLINE:       LD    A,22
+               RST   16
+               LD    A,13
+               RST   16
+               LD    A,1
+               RST   16
+               LD    HL,LINBUF
+               LD    A,(HL)
+               CP    15
+               JR    NC,EXP0
+               INC   HL
+               LD    B,A
+EXP1:          LD    A,(HL)
+               INC   HL
+               PUSH  BC
+               RST   16
+               POP   BC
+               DJNZ  EXP1
+               LD    A,":"
+               RST   16
+EXP0:          LD    A,(HL)
+               CP    CR
+               RET   Z
+               INC   HL
+               CP    128
+               CALL  NC,TOKEN
+               CALL  C,16
+               JR    EXP0
+
+TOKEN:         PUSH  AF
+               PUSH  HL
+               LD    HL,TOKENY
+               SUB   128
+               LD    C,A
+TOKEN1:        DEC   C
+               JP    M,TOKEN2
+TOKEN3:        BIT   7,(HL)
+               INC   HL
+               JR    Z,TOKEN3
+               JR    TOKEN1
+TOKEN2:        LD    A,(HL)
+               AND   127
+               RST   16
+               BIT   7,(HL)
+               INC   HL
+               JR    Z,TOKEN2
+               LD    A," "
+               RST   16
+               POP   HL
+               POP   AF
+               RET
+
+;*
+;GET LINE FROM SOURCE AND INCR. LINECNT
+;*
+GETLINE:       PUSH  BC
+               PUSH  DE
+               PUSH  HL
+               DI
+               IN    A,(250)
+               EX    AF,AF'
+               LD    A,(SRCPTR)
+               LD    HL,(SRCPTR+1)
+               BIT   6,H
+               JR    Z,GETL2
+               RES   6,H
+               INC   A
+               LD    (SRCPTR),A
+               LD    (SRCPTR+1),HL
+GETL2:         OUT   (250),A
+
+GETL4:         LD    A,(HL)
+               LD    (BUFFER),A
+               AND   A
+               JR    Z,GETL1
+               CP    2
+               JR    NZ,GETL3
+               INC   HL
+               INC   HL
+               JR    GETL4
+GETL3:         LD    C,(HL)
+               LD    B,0
+               LD    DE,BUFFER
+               LDIR
+
+GETL1:         LD    (SRCPTR+1),HL
+               EX    AF,AF'
+               OUT   (250),A
+               LD    HL,(LINECNT)
+               INC   HL
+               LD    (LINECNT),HL
+               EI
+               POP   HL
+               POP   DE
+               POP   BC
+               LD    A,(BUFFER)
+               AND   A
+               JR    NZ,FULL
+               LD    HL,AFLAGS
+               BIT   3,(HL)
+               RES   3,(HL)
+               JR    NZ,GETLINE1   ; KONIEC INCLUDE
+               SET   1,(HL)
+               RET
+FULL:          LD    A,(BUFFER+1)
+               CP    ";"
+               JR    Z,GETLINE
+               RET
+GETLINE1:      LD    A,(SRC2)
+               LD    HL,(SRC2+1)
+               LD    (SRCPTR),A
+               LD    (SRCPTR+1),HL
+               JR    GETLINE
+
+;*
+;PERFORM A PASS
+;*
+PASS:          CALL  INITP      ; INITIALIZE FOR PASS
+
+PASS1:         CALL  INITL      ; INITIALIZE FOR LINE
+               RET   Z          ; IF ESC
+               LD    A,(AFLAGS)
+               BIT   1,A
+               RET   NZ         ; BOLO END OF FILE
+
+               CALL  GLIN       ; ODSTRAN KOMENTARE
+               CALL  GLAB       ; GET LABEL
+               JR    Z,PASS4    ; JMP IF NO MORE PROC. REQD.
+               CALL  GETOR      ; GET OPERATOR TOKEN
+               JR    Z,PASS4    ; JUMP IF NO MORE PROC. REQD.
+
+               LD    A,(ORTKBF)
+               CP    MDATTOK    ; TOKEN FOR MDAT ?
+               JR    NZ,PASS2
+               CALL  PLAB
+               CALL  MDATS
+               JR    PASS5
+PASS2:         CP    DEFMTK     ; TOKEN FOR "DEFM"?
+               JR    NZ,PASS31
+               CALL  DEFMS       ; YES, PROCESS ITS OPERAND
+               JR    PASS5
+PASS31:        CP    13         ; INC/DEC GROUP
+               JR    NZ,PASS32
+               LD    A,(ORTKBF+1)
+               AND   A
+               JR    NZ,PASS32
+               LD    HL,(LINPNT)
+               LD    A,(HL)
+               CP    34
+               JR    NZ,PASS32   ; INC "XXX"
+               CALL  INCLUDE
+               CALL  PLAB
+               JR    PASS4
+
+PASS32:        CP    DEFBTK
+               JR    Z,PASS34
+               CP    DEFWTK
+               JR    NZ,PASS3
+PASS34:        CALL  PDEF
+               JR    PASS5
+
+PASS3:         CALL  GTOD      ; NEITHER, PROCESS NORMAL OPERANDS
+               JR    Z,PASS4      ; JMP IF NO MORE PROC. REQD.
+PASS5:         CALL  PTOK       ; PROCESS TOKENS
+PASS4:         CALL  PRFLO      ; PERFORM RELEVANT OUTPUT
+               LD    HL,AFLAGS
+               BIT   4,(HL)
+               RES   4,(HL)
+               SCF
+               JR    Z,PASS1        ; GO PROCESS ANOTHER LINE IF
+               XOR   A
+               RET             ; FATAL ERROR
+
+INITA:         OR    &20
+               LD    (PAGE),A
+               XOR   A
+               LD    (PASSNO),A
+               LD    (SYMTAB),A    ; CLEAR SYMBOL TABLE
+               LD    (ERRORS),A
+               LD    (AFLAGS),A
+               LD    (NOINC),A
+               LD    HL,0
+               LD    (LABELS),HL
+               LD    HL,SYMTAB    ; PUT SYMBOL TABLE START ADDR
+               LD    (SYMEND),HL    ; INTO "END OF SYMBOL TABLE" STORE
+
+               IN    A,(250)
+               DI
+               EX    AF,AF'
+               LD    A,31
+               OUT   (250),A
+               LD    HL,&5101
+               XOR   A
+               CP    (HL)
+               JR    Z,N3
+               INC   HL
+               JR    $-4
+N3:            EX    AF,AF'
+               OUT   (250),A
+               EI
+               LD    A,L
+               LD    (CRANGE),A
+               RET
+
+INITP:         XOR   A
+               LD    (DUMPF),A
+               INC   A
+               LD    (DSTPTR),A
+               LD    HL,0
+               LD    (DSTPTR+1),HL
+               LD    (CODESTART),A
+               LD    (CODESTART+1),HL
+               LD    A,(PAGE)
+               LD    (LINECNT),HL ; POCITANIE RIADKOV
+               LD    (SRCPTR),A
+               INC   HL
+               LD    (SRCPTR+1),HL
+               LD    HL,32768
+               LD    (ADREFC),HL
+               LD    A,(PASSNO)
+               ADD   "0"
+               LD    (PNO),A
+               LD    HL,PT
+               CALL  CONST
+               LD    HL,(LABELS)
+               RST   40
+               DB    NUM16
+               LD    HL,PT2
+               CALL  CONST
+               LD    HL,(TABFREE)
+               RST   40
+               DB    NUM16
+               LD    A,(PASSNO)
+               CP    2
+               CALL  Z,INDEX
+               RET
+
+PT:            DB    22,12,1
+               DM    "Pass # "
+PNO:           DB    "1"
+               DM    " | Labels "
+               DB    -1
+PT2:           DM    " | Tabfree "
+               DB    -1
+
+INITL:         PUSH  BC      ; SAVE REGS
+               PUSH  HL
+               XOR   A      ; CLEAR ACC
+               LD    HL,ASSCOD    ; SET PNTR TO ASSD CODE BUFFER
+               LD    (MEMPTR),HL
+               LD    B,ACBSIZ    ; LOAD CNTR WITH SIZE OF BUFFER
+INITL1:        LD    (HL),A      ; CLEAR A LOCATION
+               INC   HL      ; INCR PNTR
+               DJNZ  INITL1      ; LOOP UNTIL DONE
+
+               LD    (ASCDNO),A    ; SET "BYTES ASSD CODE" = 0
+               LD    (ODBT1),A    ; CLEAR OPERAND TOKEN BUFFERS
+               LD    (ODBT2),A
+               LD    HL,0      ; CLEAR OPERAND INTEGER BUFFERS
+               LD    (ODINT1),HL
+               LD    (ODINT2),HL
+               LD    (ORTKBF),HL    ; CLEAR OPERATOR TOKEN BUFFER
+               LD    HL,(ADREFC)    ; COPY ADDR REF CNTR
+               LD    (ADDISR),HL    ; INTO ADDR DIS REG
+               LD    A,SPACE      ; PUT SPACE CHAR IN ERROR BUFFER
+               LD    (ERRBUF),A
+               LD    HL,AFLAGS    ; SET PNTR TO ASSEMBLER FLAGS
+               RES   0,(HL)      ; CLEAR ADDR DISCONTINUITY FLAG
+               RES   1,(HL)      ; CLEAR "END" FLAG
+               CALL  GETLINE
+               LD    A,&F7
+               IN    A,(&F9)
+               AND   32
+               POP   HL
+               POP   BC
+               RET
+;*
+;GET LINE FROM READER
+;*
+GLIN:          PUSH  HL      ; SAVE REGS
+               PUSH  DE
+               PUSH  BC
+               LD    HL,LINBUF    ; SET POINTER TO LINE BUFFER
+GLIN1:         LD    A,(HL)  ; GET CHAR FROM READER
+               CP    CR      ; IS IT CR?
+               JR    Z,GLIN4
+               CP    ";"      ; SET COMMENT FLAG IF ";"
+               JR    NZ,GLIN7
+               LD    (HL),CR
+               JR    GLIN4
+GLIN7:         CP    34           ; PUT IN BUFFER
+               PUSH  AF
+               CALL  Z,STR
+               POP   AF
+               JR    Z,GLIN1
+               INC   HL
+               JR    GLIN1
+GLIN4:         DEC   HL
+               LD    A,(HL)
+               CP    "'"
+               JR    NZ,GLIN2
+               DEC   HL
+               LD    A,(HL)
+               INC   HL
+               CP    T#AF
+               JR    NZ,GLIN2
+               LD    (HL),CR
+GLIN2:         POP   BC      ; REPLACE REGS
+               POP   DE
+               POP   HL
+               RET
+;*
+;GET LABEL
+;LOCATES LABEL (IF ANY) IN LINBUF AND PUTS IT IN LABBUF.
+;LEAVES POINTER TO CHARACTER AFTER LABEL IN LINPNT.
+;ZERO SET IF NOTHING ELSE TO PROCESS
+;*
+GLAB:          PUSH  HL              ; SAVE REGS
+               PUSH  DE
+               PUSH  BC
+               LD    HL,LINBUF       ; SET POINTER TO LINE BUFFER
+               LD    DE,LABBUF       ; SET POINTER TO LABEL BUFFE
+GLAB1:         LD    A,(HL)          ; SCAN TO FIRST NON SPACE CH
+               CP    LABSIZ+1
+               JR    NC,GLAB6        ; UMIESTNI LABEL DO BUFERA
+               LD    (DE),A
+               INC   HL
+               INC   DE
+               LD    B,A
+GLAB9:         LD    A,(HL)
+               LD    (DE),A
+               INC   HL
+               INC   DE
+               DJNZ  GLAB9
+               LD    A,(HL)
+               CP    CR
+               JR    NZ,GLAB4
+
+               LD    (HL),T#EQU
+               INC   HL           ; TREBA HO ZAZNAMENAT
+               LD    (HL),"$"
+               INC   HL
+               LD    (HL),CR
+               DEC   HL
+               DEC   HL
+               JR    GLAB4
+
+GLAB6:         LD    HL,LINBUF    ; RIADOK BEZ LABEL
+               XOR   A            ; SET "NO LABEL IN BUFFER"
+               LD    (LABBUF),A
+
+GLAB4:         LD    (LINPNT),HL  ; RIADOK Z LABEL
+               XOR   A            ; CLEAR ZERO FLAG
+               INC   A
+GLAB8:         POP   BC
+               POP   DE
+               POP   HL
+               RET
+;*
+;GET OPERATOR TOKEN,
+;LOCATES OPERATOR (IF ANY) AND PUTS TOKEN AND VALUE FOR IT IN O.
+;LEAVES POINTER TO CHARACTER AFTER OPERATOR IN LINPNT
+;ZERO FLAG SET IF NOTHING ELSE TO PROCESS.
+;*
+GETOR:         PUSH  HL      ; SAVE REGISTERS
+               PUSH  DE
+               PUSH  BC
+               EXX
+               PUSH  HL
+               PUSH  DE
+               PUSH  BC
+               LD    HL,(LINPNT)    ; FETCH POINTER TO LINE BUFFER
+GETOR1:        LD    A,(HL)
+GETOR5:        CP    T#A            ; TOKEN?
+               JR    C,GETOR3       ; NO, SYNTAX ERROR
+               LD    DE,SYMBUF      ; SET POINTER TO SYMBOL BUFFE
+               LD    A,1            ; SET COUNT = 0
+               LD    (DE),A         ; PUT CHAR IN OPERATOR BUFFE
+               INC   DE
+               LD    A,(HL)         ; GET TOKEN
+               LDI                 ; INCR LINBUF POINTER
+               EXX                 ; SET UP PARAMETERS FOR OPTOK
+               LD    DE,ORTKBF
+               CALL  FORL           ; GET TOKENS FROM LIST
+               EXX
+               JR    Z,GETOR3       ; INVALID SYNTAX, NOT IN LIST
+
+GETOR2:        LD    (LINPNT),HL    ; DEPOSIT LINE BUFFER POINTER
+               XOR   A              ; CLEAR ZERO FLAG
+               INC   A
+GETOR7:        POP   BC             ; RECOVER REGISTERS
+               POP   DE
+               POP   HL
+               EXX
+               POP   BC
+               POP   DE
+               POP   HL
+               RET
+GETOR3:        CALL  DNOPS      ; RESERVE 4 DEFAULT NOP"S
+               CALL  ADJARC      ; ADJUST ADDRESS REF COUNTER
+               XOR   A      ; SET ZERO FLAG
+               JR    GETOR7
+;*
+;GET OPERAND TOKENS AND VALUES
+;LOCATES OPERANDS (IF ANY) AND SETS TOKENS FOR THEM IN ODBT1/OD2
+;AND CORRESPONDING INTEGER VALUES (IF ANY) IN ODINT1/ODINT2.
+;ZERO FLAG SET IF NOTHING ELSE TO PROCESS
+;*
+GTOD:          PUSH  IX      ; SAVE REGISTERS
+               PUSH  IY
+               PUSH  HL
+               PUSH  DE
+               PUSH  BC
+               EXX
+               PUSH  HL
+               PUSH  DE
+               PUSH  BC
+               LD    HL,(LINPNT)    ; GET LINE BUFFER POINTER
+               LD    B,0      ; CLEAR B (OPERAND COUNTER,
+                             ; "BRACKETS" FLAG & "QUOTE" FLAG)
+GTOD1:         CALL  SCNSP      ; SCAN TO FIRST NON SPACE CHAR
+               CP    ","      ; IS IT A COMMA?
+               JR    NZ,GTOD2
+               BIT   0,B      ; YES, FOUND 1 OPERAND?
+               JP    Z,GTOD25    ; NO, SYNTAX ERROR
+               INC   HL      ; YES, SCAN TO NEXT NON SP CHAR
+               CALL  SCNSP
+               JR    GTOD3
+
+GTOD2:         CP    CR       ; IS IT A CR ?
+               JP    Z,GTOD24
+GTOD3:         PUSH  HL      ; NO, SET POINTER TO START
+               POP   IX      ; OF OPERAND IN IX
+               RES   6,B      ; CLEAR QUOTE FLAG
+
+GTOD4:         LD    A,(HL)      ; GET CHAR IN A
+               CP    34        ; IS IT A "?
+               JR    NZ,GTOD18    ; JUMP IF NOT
+               LD    A,B      ; COMPLEMENT QUOTE FLAG
+               XOR   %01000000
+               LD    B,A
+               JR    GTOD28      ; AND CONTINUE TO SCAN
+GTOD18:        CP    CR      ; IS IT CR?
+               JR    Z,GTOD5      ; FOUND DELIMITER, JUMP
+               CP    SPACE      ; IS IT SPACE
+               JR    Z,GTOD27    ; JUMP IF SO
+               CP    ","      ; IS IT A COMMA?
+               JR    Z,GTOD27    ; JUMP IF SO
+               CP    ";"      ; IS IT ; ?
+               JR    NZ,GTOD28    ; CONTINUE SCAN OF NONE OF THESE
+GTOD27:        BIT   6,B      ; IS QUOTE FLAG SET?
+               JR    Z,GTOD5      ; JUMP IF NOT, FOUND DELIMITER
+GTOD28:        INC   HL      ; POINT TO NEXT CHAR
+               JR    GTOD4      ; AND LOOP
+
+GTOD5:         PUSH  HL      ; SET POINTER (IY) TO CHAR
+               POP   IY      ; AFTER END OF OPERAND
+               INC   B       ; INCR # OF OPERANDS FOUND
+               LD    A,B      ; IS IT > 2 ?
+               AND   3
+               CP    3
+               JP    Z,GTOD25    ; MOC VELA OPERATOROV
+
+               RES   7,B      ; CLEAR BRACKETS FLAG
+               LD    A,(IX)      ; DOES IT START WITH ( ?
+               CP    "("
+               JR    NZ,GTOD6
+               LD    A,(IY-1)    ; DOES IT END WITH ) ?
+               CP    ")"
+               JR    NZ,GTOD6
+               SET   7,B      ; SET BRACKETS FLAG IN B
+               INC   IX      ; AND CLOSE IN POINTERS
+               DEC   IY
+
+GTOD6:         PUSH  IX      ; GET POINTER TO START OF OPERAND
+               POP   HL
+               LD    DE,SYMBUF+1    ; SET POINTER TO SYMBUF
+               LD    C,0      ; ZERO CHAR COUNT
+               LD    A,(HL)      ; FETCH A CHAR
+               CALL  ALPHA      ; IS IT A LETTER?
+               JR    C,GTOD9
+                               ; EVALUATE EXPRESSION
+GTOD7:      ;  CP   34         ; NOT LETTER, IS IT "?
+            ;  JR   NZ,GTOD8
+               LD    (DE),A      ; SAVE IT IN BUFFER
+               INC   HL         ; POINT TO CHAR FOLLOWING
+               INC   C          ; INCREMENT COUNT
+GTOD8:         LD    A,C        ; PUT COUNT IN SYMBUF
+               LD    (SYMBUF),A
+               AND   A          ; IF COUNT=0 THEN
+               JR    Z,GTOD9      ; GO TO EVAL EXPRESSION
+               EXX             ; GET OPERAND KEYWORD TOKEN
+               LD    HL,OPKLST
+               LD    DE,TEMP
+               LD    C,1      ; 1 BYTE PER TOKEN
+               CALL  OPTOK
+               EXX
+               JR    Z,GTOD9      ; JUMP IF NO KEYWORD FOUND
+               LD    C,A      ; SAVE TOKEN IN C
+               CP    CTOK      ; TOKEN FOR C?
+               JR    NZ,GTOD12
+               LD    A,(ORTKBF)
+               BIT   7,A      ; IS OPERATOR CONDITIONAL?
+               JR    Z,GTOD12
+               LD    C,CCOND      ; TOKEN FOR CONDITIONAL "C"
+GTOD12:        LD    A,C      ; GET TOKEN
+               AND   XYMASK      ; IS IT IX/IY ?
+               CP    IXORIY
+               JR    NZ,GTOD14
+               LD    A,(HL)      ; GET FOLLOWING CHAR
+               CP    "+"
+               JR    Z,GTOD13
+               CP    "-"
+               JR    NZ,GTOD14
+GTOD13:        LD    A,C      ; CONVERT TOKEN TO DUMMY VALUE
+               AND   15
+               OR    &C0
+               LD    C,A
+               PUSH  HL      ; CLOSE POINTER IN TO START OF EXPRESS
+               POP   IX
+               CALL  EVAL      ; GET VALUE OF EXPRESSION IN HL
+               JR    Z,GTOD25    ; SYNTAX ERROR
+               BIT   0,B      ; FOUND 1 OPERAND?
+               JR    Z,GTOD15
+               LD    (ODINT1),HL    ; SAVE VALUE IN 1ST OPERAND BUFFER
+               JR    GTOD11
+GTOD15:        LD    (ODINT2),HL    ; SAVE VALUE IN 2ND OPND BUFF
+               JR    GTOD11
+GTOD14:        PUSH  IY      ; END OF OPERAND?
+               POP   DE
+               AND   A      ; CLEAR CARRY FLAG
+               SBC   HL,DE
+               JR    NZ,GTOD25    ; SYNTAX ERROR
+               JR    GTOD11
+
+GTOD9:         CALL  EVAL      ; EVALUATE EXPRESSION
+          ; RESULT IN HL
+               JR    Z,GTOD25    ; SYNTAX ERROR
+               BIT   0,B      ; FOUND 1 OPERAND?
+               JR    Z,GTOD17
+               LD    (ODINT1),HL    ; SAVE VALUE IN FIRST OPERAND BUFFER
+               JR    GTOD16
+GTOD17:        LD    (ODINT2),HL    ; SAVE VALUE IN 2ND OPND BUFF
+GTOD16:        LD    C,INTTOK    ; SET TOKEN FOR "INTEGER"
+GTOD11:        BIT   7,B      ; WAS IT IN BRACKETS?
+               JR    Z,GTOD21    ; NO
+               LD    HL,BKLST    ; YES, CHECK IF VALID, POINT TO LIST
+GTOD20:        LD    A,(HL)      ; GET A TOKEN
+               INC   HL      ; POINT TO REPLACEMENT TOKEN
+               AND   A      ; IS TOKEN 0 ?
+               JR    Z,GTOD25    ; YES, NOT IN LIST, SYN. ERR.
+               CP    C      ; IS IT EQUAL TO ACTUAL TOKEN?
+               JR    Z,GTOD19    ; YES, GO REPLACE IT
+               INC   HL      ; POINT TO NEXT TOKEN
+               JR    GTOD20
+GTOD19:        LD    C,(HL)      ; REPLACE TOKEN WITH
+          ; BRACKETTED VERSION.
+               INC   IY      ; OPEN OUR FINAL POINTER AGAIN
+GTOD21:        LD    A,C      ; SAVE TOKEN IN RELEVANT BUFFER
+               BIT   0,B      ; FOUND 1 OPERAND?
+               JR    Z,GTOD22
+               LD    (ODBT1),A    ; SAVE TOKEN IN 1ST OPND BUFF
+               JR    GTOD23
+GTOD22:        LD    (ODBT2),A    ; SAVE TOKEN IN 2ND OPND BUFF
+GTOD23:        PUSH  IY      ; POINT AT NEXT THING
+               POP   HL
+               JP    GTOD1      ; GO PROCESS NEXT TOKEN
+GTOD24:        XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+GTOD26:        POP   BC      ; REPLACE SAVED REGISTERS
+               POP   DE
+               POP   HL
+               EXX
+               POP   BC
+               POP   DE
+               POP   HL
+               POP   IY
+               POP   IX
+               RET
+GTOD25:        CALL  DNOPS      ; APPEND DEFAULT NOP"S
+               CALL  ADJARC      ; ADJUST ADDRESS REF COUNTER
+               XOR   A
+               JR    GTOD26
+;*
+;EVALUATE AN EXPRESSION
+;ON ENTRY AND EXIT:
+;  IX POINTS AT FIRST CHAR OF EXPRESSION
+;  IY POINTS AT CHAR AFTER END OF EXPRESSION
+;ON EXIT:
+;  HL CONTAINS VALUE OF EXPRESSION
+;  AND ZERO FLAG IS SET IF SYNTAX ERROR
+;*
+EVAL:          PUSH  DE      ; SAVE REGISTERS
+               PUSH  BC
+               EXX
+               PUSH  BC
+               XOR   A      ; CLEAR ROUTINE FLAG REGISTER
+               LD    B,A
+               EXX
+               LD    (ARCNT),A    ; CLEAR STACKS
+               LD    (FCNT),A
+               PUSH  IX      ; POINT TO START OF EXPR.
+               POP   HL
+EVAL1:         PUSH  IY      ; END OF EXPRESSION?
+               POP   DE      ; I.E. HL=IY ?
+               EX    DE,HL
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE
+               EX    DE,HL
+               JP    Z,EOEX      ; END OF EXPRESSION
+               JP    C,EVAL6      ; END OF EXPRESSION ERROR
+
+               LD    A,(HL)      ; GET A CHAR
+               CALL  DIGIT      ; IS IT A DIGIT?
+               JR    C,LIT      ; YES, GO PROCESS LITERAL
+               CP    "&"
+               SCF
+               JR    Z,LIT
+               CP    "%"
+               SCF
+               JR    Z,LIT
+
+               CALL  ALPHA      ; IS IT A LETTER?
+               JR    C,SYMB      ; YES, GO PROCESS SYMBOL
+               CP    "."      ; IS IT A "."?
+               JR    Z,MCF      ; YES, GO PROCESS M/CHAR FUNCTION
+               CP    34        ; IS IT A "?
+               JR    Z,ASC      ; YES, GO PROC. ASCII CHAR
+               CP    "("      ; IS IT A "("?
+               JP    Z,LBKT      ; YES, GO PROC. LEFT BRKT
+               CP    ")"      ; IS IT ")"?
+               JP    Z,RBKT      ; YES, GO PROC. R.H. BRKT
+               CP    "$"      ; IS IT "$"?
+               JR    Z,CURLC      ; YES, GO PROC. CURR. LOC.
+SCHF:          CALL  PSCF      ; PROCESS AS SINGLE CHAR. FUNCTION
+               JP    Z,EVAL3      ; INVALID CHAR ERROR
+               JR    FUN
+LIT:           CALL  PLIT      ; PROCESS AS LITERAL
+               JR    OPND
+SYMB:          CALL  PSYMB
+               JR    OPND
+ASC:           CALL  PASC      ; PROCESS OS ASCII STRING
+               JR    OPND
+CURLC:         LD    DE,(ADREFC)    ; CURRENT VALUE OF ADDR REF
+          ; COUNTER REQUIRED
+               INC   HL      ; POINT TO NEXT EXPR CHAR
+               JR    OPND1
+OPND:          JP    C,EVAL4      ; "VALUE" ERROR
+OPND1:         CALL  PUDE      ; PUSH VALUE (IN DE) ONTO
+          ; ARITHMETIC STACK
+               JP    Z,EVAL5      ; STACK OVERFLOW ERROR
+               EXX        ; SET "LAST UNIT" FLAG
+               SET   0,B
+               EXX
+               JR    EVAL1
+
+MCF:           CALL  PMCF
+               JP    Z,EVAL6      ; SYNTAX ERROR
+FUN:           LD    A,(FTOKR)    ; GET FUNCTION TOKEN
+               CP    PLUTOK      ; IS IT TOKEN FOR +?
+               JR    Z,FUN1
+               CP    MINTOK      ; IS IT TOKEN FOR -?
+               JR    NZ,FUN2
+          ; +/-
+FUN1:          EXX        ; WAS LAST UNIT START/(/FUNCTION ?
+               BIT   0,B
+               EXX
+               JR    Z,FUN3
+               ADD   A,&5D       ; CHANGE TOKEN TO DIADIC
+               LD    (FTOKR),A
+               JR    FUN3
+FUN2:          CP    &3D       ; DIADIC FUNCTION
+               JR    C,FUN3
+               EXX        ; WAS LAST UNIT START/(/FUNCTION?
+               BIT   0,B
+               EXX
+               JP    Z,EVAL6      ; SYNTAX ERROR
+FUN3:          CALL  POFU      ; GET PREVIOUS FUNCTION
+               JR    Z,FUN4      ; NO PREVIOUS FUN, PUSH NEW ONE
+               LD    E,A      ; SAVE TOP OF STACK IN E
+               LD    A,(FTOKR)    ; GET NEW FUNCTION TOKEN
+               AND   7      ; MASK OFF PRIORITY BITS IN NEW OPR
+               LD    B,A      ; SAVE IN B
+               LD    A,E
+               AND   7      ; MASK OFF PRIORITY BITS OF TOS
+               CP    B      ; COMPARE PRIORITIES
+               JR    NC,FUN5      ; GO DO A FUNCTION
+          ; NEW FUNCTION HAS HIGHER
+          ; PRIORITY SO PUSH IT ON
+          ; STACK.
+               LD    A,E      ; FIRST PUSH BACK TOP OF STACK
+               CALL  PUFU
+FUN4:          LD    A,(FTOKR)    ; THEN PUSH NEW FUNCTION
+               CALL  PUFU
+               JR    Z,EVAL5      ; STACK OVERFLOW ERROR
+               EXX          ; CLEAR "LAST UNIT" FLAG
+               RES   0,B
+               EXX
+               JP    EVAL1
+FUN5:          LD    A,E      ; PUT T O S IN ACC
+               CALL  FUNC      ; PERFORM A FUNCTION
+               JR    Z,EVAL6      ; SYNTAX ERROR
+               JR    FUN3      ; GO TRY NEXT FUNCTION ON STACK
+;..................................................
+LBKT:          INC   HL      ; POINT TO NEXT EXPR CHAR
+               LD    A,LBTOK      ; SET TOKEN FOR "("
+               CALL  PUFU      ; PUSH ON FUNCTION STACK
+               JR    Z,EVAL5      ; STACK OVERFLOW ERROR
+               EXX        ; CLEAR "LAST UNIT" FLAG
+               RES   0,B
+               EXX
+               JP    EVAL1
+;..................................................
+RBKT:          INC   HL
+RBKT2:         CALL  POFU      ; POP FUNCTION STACK
+               JR    Z,EVAL7      ; EMPTY, BALANCE ERROR
+               CP    LBTOK      ; IS IT A (?
+               JR    Z,RBKT1
+               CALL  FUNC      ; PERFORM THE FUNCTION
+               JR    Z,EVAL6      ; SYNTAX ERROR
+               JR    RBKT2      ; MORE OPS TO DO ?
+RBKT1:         EXX        ; SET "LAST UNIT" FLAG
+               SET   0,B
+               EXX
+               JP    EVAL1
+;.................................................
+          ; END OF EXPRESSION
+EOEX:          CALL  POFU      ; POP FUNCTION STACK
+               JR    Z,EOEX1      ; NO MORE FUNCTIONS
+               CP    LBTOK
+               JR    Z,EVAL7      ; BALANCE ERROR
+               CALL  FUNC      ; PERFORM THE FUNCTION
+               JR    Z,EVAL6      ; SYNTAX ERROR
+               JR    EOEX
+EOEX1:         CALL  PODE      ; GET EXPR VALUE IN DE
+               JR    Z,EVAL6      ; SYNTAX ERROR (STACK EMPTY)
+               LD    A,(ARCNT)    ; CHECK IF STACK NOW EMPTY
+               AND   A
+               JR    NZ,EVAL6    ; SYNTAX ERROR
+               EX    DE,HL
+               EXX
+               BIT   1,B      ; TEST FOR ARITH OVERFLOW
+               EXX
+               JR    Z,EOEX2
+               LD    C,"A"
+EOEX4:         CALL  ERROR      ; INDICATE ARITH OVERFLOW
+EOEX2:         XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+EOEX3:         EXX
+               POP   BC
+               EXX
+               POP   BC
+               POP   DE
+               RET
+EVAL3:         LD    C,"I"
+               JR    EVAL8
+EVAL4:         LD    C,"V"      ; VALUE ERROR
+               LD    HL,0      ; SET RESULT=0
+               JR    EOEX4      ; NOT FATAL
+EVAL5:         LD    C,"O"      ; STACK OVERFLOW ERROR
+               JR    EVAL8
+EVAL6:         LD    C,"S"      ; SYNTAX ERROR
+               JR    EVAL8
+EVAL7:         LD    C,"B"      ; BALANCE ERROR
+EVAL8:         CALL  ERROR      ; SET ERROR INDICATOR
+               XOR   A      ; SET ZERO (ERROR) FLAG
+               JR    EOEX3      ; AND PREPARE TO EXIT
+;*
+;PROCESS LITERAL.
+;THIS SUBROUTINE INCLUDES PBIN, PDEC,
+;PHEX, POCT.
+;ON ENTRY:
+;  HL POINTS TO FIRST CHAR OF LITERAL
+;ON EXIT:
+;  HL POINTS TO CHAR AFTER LITERAL
+;  DE CONTAINS VALUE OF LITERAL
+;  CARRY FLAG IS SET FOR VALUE ERROR
+;*
+PLIT:                       ; SAVE POINTER TO START OF LIT.
+               LD    A,(HL)
+               INC   HL
+               CP    "%"
+               JR    Z,PBIN
+               CP    "&"
+               JP    Z,PHEX
+               DEC   HL
+               JR    PDEC      ; DECIMAL LITERAL
+;*
+;PROCESS BINARY LITERAL.
+;*
+PBIN:          PUSH  BC      ; SAVE REGISTERS
+               LD    DE,0      ; CLEAR 16 BIT ACC.
+PBIN1:         LD    A,(HL)      ; GET CHAR
+               CALL  HEXDG
+               JR    NC,PBIN2
+               CP    "1"+1      ; VALID IN BINARY LIT.?
+               JR    NC,PBIN2
+               SUB   "0"      ; CONVERT ASCII TO BINARY
+               LD    C,A
+               CALL  SHLDE      ; SHIFT DE LEFT
+               CALL  ADCDE      ; & ADD NEW DIG. TO DE
+               INC   HL      ; INCREMENT POINTER TO NEXT CHAR.
+               JR    PBIN1
+PBIN2:         LD    A,(HL)
+               CALL  HEXDG
+               POP   BC
+               RET
+;*
+;PROCESS DECIMAL LITERAL.
+;*
+PDEC:          PUSH  BC
+               LD    DE,0      ; CLEAR 16 BIT ACC.
+PDEC1:         LD    A,(HL)      ; GET CHAR
+               CALL  HEXDG
+               JR    NC,PBIN2
+               CP    "9"+1      ; VALID IN A DEC. LIT.?
+               JR    NC,PBIN2
+               SUB   "0"      ; CONVERT ASCII TO BINARY
+               PUSH  HL
+               EX    DE,HL
+               ADD   HL,HL
+               LD    E,L
+               LD    D,H
+               ADD   HL,HL
+               ADD   HL,HL
+               ADD   HL,DE
+               LD    E,A
+               LD    D,0
+               ADD   HL,DE
+               EX    DE,HL
+               POP   HL      ; RECOVER NEW DIGIT
+               INC   HL      ; POINT TO NEXT CHAR
+               JR    PDEC1
+;*
+;PROCESS HEXADECIMAL LITERAL.
+;*
+PHEX:          PUSH  BC
+               LD    DE,0      ; CLEAR 16 BIT ACC.
+PHEX1:         LD    A,(HL)      ; GET CHAR
+               CALL  HEXDG      ; VALID IN A LITERAL?
+               JR    NC,PBIN2
+               SUB   "0"      ; CONVERT ASCII TO BINARY
+               CP    10
+               JR    C,PHEX2
+               SUB   "A"-"0"-10
+PHEX2:         LD    C,A
+               LD    B,4      ; SHIFT DE LEFT 4 TIMES
+PHEX3:         CALL  SHLDE
+               DEC   B      ; DONE4 SHIFTS YET?
+               JR    NZ,PHEX3
+               CALL  ADCDE      ; ADD NEW DIGIT TO DE
+               INC   HL      ; INCREMENT POINTER TO NEXT CHAR
+               JR    PHEX1
+;*
+;HEXDG. IS CHAR IN ACC VALID IN A LITERAL.
+;*
+HEXDG:         CALL  DIGIT      ; CARRY SET IF 0-9
+               RET   C
+               CP    "A"
+               JR    C,HEXDG1
+               CP    "F"+1
+               RET   C
+               CP    "a"
+               JR    C,HEXDG1
+               CP    "f"+1
+               RET   NC
+               SUB   " "
+               SCF
+               RET
+HEXDG1:        AND   A      ; NOT HEX DIG., CLEAR CARRY
+               RET
+HEXDG2:        SCF        ; HEX DIGIT, SET CARRY
+               RET
+;*
+;SHIFT DE LEFT 1 BIT - ENTER 0 FROM RIGHT.
+;SET "VALUE" ERROR IF OVERFLOW.
+;*
+SHLDE:         EX    DE,HL      ; DO SHIFT BY ADDITION IN HL
+               ADD   HL,HL
+               EX    DE,HL
+               RET   NC      ; NO CARRY, SO RETURN
+               PUSH  BC      ; CARRY, SO INDICATE "V" ERROR
+               LD    C,"V"
+               CALL  ERROR
+               POP   BC
+               RET
+;*
+;ADD BC TO DE - SET "VALUE" ERROR IF OVERFLOW.
+;*
+ABCDE:         PUSH  BC
+               EX    DE,HL      ; DO ADDITION IN HL
+               ADD   HL,BC      ; DO ADDITION
+               EX    DE,HL      ; GET RESULT BACK TO DE
+               JR    NC,ABCDE1
+               LD    C,"V"      ; CARRYOUT SO INDICATE "V" ERROR
+               CALL  ERROR
+ABCDE1:        POP   BC
+               RET
+;*
+;ADD C TO DE - NO OVERFLOW INDICATION
+;*
+ADCDE:         PUSH  BC
+               EX    DE,HL
+               LD    B,0
+               ADD   HL,BC
+               EX    DE,HL
+               POP   BC
+               RET
+;*
+;PROCESS SYMBOL.
+;GET SYMBOL AND FETCH ITS VALUE FROM THE SYMBOL TABLE. RETURN VE
+;IN DE.
+;*
+PSYMB:         PUSH  BC      ; SAVE REGISTERS
+               LD    DE,SYMBUF    ; SET PNTR TO SYMBOL BUFFER
+               CALL  GSYM      ; GET SYMB FROM LINE TO SYMBUF
+               PUSH  HL      ; SAVE PNTR TO CHAR AFTER SYMB
+               CALL  LOCATE      ; FIND SYMB IN SYMTAB
+               JR    NZ,PSYMB1    ; NOT IN TABLE?
+               LD    E,(HL)      ; MOVE VALUE TO DE
+               INC   HL
+               LD    D,(HL)
+               INC   HL
+               SET   7,(HL)
+               JR    PSYMB2
+PSYMB1:        LD    C,"U"      ; INDICATE "UNDEFINED" ERROR
+               CALL  ERROR
+               LD    DE,0      ; SET DE=0 DEFAULT VALUE
+PSYMB2:        POP   HL      ; REPLACE REGISTERS
+               POP   BC
+               AND   A      ; CLEAR CARRY FLAG SO
+               RET        ; AS NOT TO INDICATE "VALUE" ERROR
+;*
+;PROCESS ASCII LITERAL.
+;RETURN VALUE OF 1 OR 2 ASCII CHARACTERS.
+;ON ENTRY:
+;          HL POINTS TO START QUOTE
+;ON EXIT:
+;          HL POINTS TO CHAR AFTER CLOSE QUOTE
+;          DE CONTAINS VALUE
+;          CARRY FLAG SET IF ERROR
+;*
+PASC:          LD    DE,0      ; CLEAR 16 BIT ACC. DE
+               INC   HL      ; POINT TO CHAR AFTER QUOTE
+               CALL  DOUBQ      ; IS NEXT CHAR CLOSING QUOTE?
+               JR    NZ,PASC2    ; JUMP IF SO
+               LD    E,(HL)      ; OTHERWISE SAVE CHAR IN E
+               INC   HL      ; POINT TO NEXT CHAR
+               CALL  DOUBQ      ; NEXT CHAR CLOSE QUOTE?
+               JR    NZ,PASC2    ; JUMP IF SO
+               LD    D,(HL)      ; OTHERWISE SAVE IN D
+               INC   HL      ; POINT TO NEXT CHAR
+               CALL  DOUBQ      ; NEXT CHAR CLOSE QUOTE?
+               JR    NZ,PASC2    ; JUMP IF SO
+AASC1:         SCF        ; ERROR, SET CARRY
+               RET
+PASC2:         AND   A      ; NO ERROR, CLEAR CARRY
+               RET
+;......................................................
+;DOUBLE QUOTE.
+;IS NEXT ITEM IN STRING A CHARACTER OF THE END OF THE ASCII
+;LITERAL? ON ENTRY: HL POINTS AT THE NEXT ITEM, ON EXIT: HL
+;HAS BEEN INCREMENTED IF DOUBLE QUOTE. ZERO SET IF CHAR.
+;......................................................
+DOUBQ:         LD    A,(HL)      ; GET CHAR
+               CP    34        ; IS IT A QUOTE?
+               JR    NZ,DOUBQ1    ; JUMP IF NOT
+               INC   HL      ; POINT TO NEXT CHAR
+               LD    A,(HL)      ; GET IT
+               CP    34        ; IS IT A QUOTE?
+               RET        ; ZERO SET FOR CHAR
+DOUBQ1:        XOR   A      ; LIT CHAR. SET ZERO.
+               RET
+;*
+;PROCESS MULTI-CHAR FUNCTION.
+;ON ENTRY:
+;  HL POINTS TO FIRST CHAR OF FUNCTION STRING
+;ON EXIT:
+;  HL POINTS TO CHAR AFTER FUNCTION STRING
+;  FTOKR CONTAINS TOKEN FOR FUNCTION
+;  ZERO FLAG SET FOR ERROR
+;*
+PMCF:          PUSH  BC      ; SAVE REGISTERS
+               PUSH  DE
+               INC   HL      ; POINT TO CHAR AFTER "."
+               LD    A,(HL)      ; GET IT
+               CALL  ALPHA      ; IS IT A LETTER?
+               JR    NC,PMCF1    ; NO, SYNTAX ERROR
+               LD    DE,SYMBUF    ; SET POINTER TO SYMBUF
+               CALL  DSYM      ; GET FUNCTION IN SYMBUF
+               INC   HL      ; INCR PNTR
+               PUSH  HL      ; AND SAVE IT ON STACK
+               CP    "."      ; WAS CHAR AFT. FUN. "."?
+               JR    NZ,PMCF2    ; JUMP IF NOT
+               LD    A,(SYMBUF)    ; GET NO OF CHARS
+               CP    5      ; MORE THAN 4?
+               JR    NC,PMCF2    ; JUMP IF SO
+               LD    DE,FTOKR    ; PNTR TO TOKEN REG.
+               LD    HL,MFLSTP    ; PNTR TO OPR LIST
+               LD    C,1      ; 1 TOKEN/ENTRY IN LIST
+               CALL  OPTOK      ; GET TOKEN
+               JR    PMCF3
+PMCF1:         XOR   A      ; SET ZERO TO INDICATE ERR.
+               JR    PMCF4
+PMCF2:         XOR   A      ; SET ZERO TO INDICATE ERROR
+PMCF3:         POP   HL
+PMCF4:         POP   DE
+               POP   BC
+               RET
+;*
+;PROCESS SINGLE CHAR FUNCTION.
+;ON ENTRY:
+;  HL POINTS AT FUNCTION CHAR
+;ON EXIT:
+;  HL POINTS TO CHAR AFTER FUNCTION CHAR(S)
+;  FTOKR CONTAINS TOKEN FOR FUNCTION
+;  ZERO FLAG SET IF ERROR
+;*
+PSCF:          PUSH  BC      ; SAVE REGISTERS
+               PUSH  DE
+               LD    B,(HL)      ; GET POTENTIAL FUNCTION
+               INC   HL      ; & INCR PNTR
+               LD    DE,SCF1      ; SET UP POINTER TO LIST
+PSCF1:         LD    A,(DE)      ; GET LIST ENTRY
+               AND   A      ; IS IT ZERO?
+               JR    Z,PSCF3      ; END OF LIST, INVAL. CHAR
+               CP    B      ; MATCH?
+               INC   DE      ; INCR. PNTR. TO TOKEN
+               JR    Z,PSCF2      ; JUMP IF MATCH
+               INC   DE      ; OTHERWISE POINT TO NEXT ENTRY
+               JR    PSCF1      ; LOOP
+PSCF2:         LD    A,(DE)      ; GET THE TOKEN
+               LD    (FTOKR),A    ; & PUT IN TOKEN REG.
+               CP    ASKTOK      ; IS IT *
+               JR    NZ,PSCF4    ; JUMP IF NOT
+               LD    A,(HL)      ; GET NEXT CHAR
+               CP    "*"
+               JR    NZ,PSCF4    ; JUMP IF NOT
+               LD    A,EXPTOK    ; PUT TOKEN FOR *
+               LD    (FTOKR),A
+               INC   HL      ; AND INCR PNTR
+               AND   A      ; CLEAR ZERO FLAG
+               JR    PSCF4
+PSCF3:         XOR   A      ; SET ZERO TO INDICATE ERROR
+PSCF4:         POP   DE      ; REPLACE REGS
+               POP   BC
+               RET
+;*
+;PUSH ACC TO FUNCTION STACK.
+;BYTE IN A IS PUSHED ONTO THE FUNCTION
+;STACK (FSTK). IF NOT POSSIBLE OWING TO
+;THE STACK BEING FULL, THEN THE ZERO FLAG
+;IS SET ON EXIT.
+;*
+PUFU:          PUSH  HL      ; SAVE REGISTERS
+               PUSH  BC
+               EX    AF,AF'        ; SAVE FUNCTION
+               LD    HL,FSTK      ; LOAD START OF STACK ADDR
+               LD    A,(FCNT)    ; GET STACK COUNTER
+               CP    MAXFSK      ; IS STACK FULL?
+               JR    NC,PUFU2
+               LD    C,A      ; COMPUTE TOP OF STACK
+               LD    B,0
+               ADD   HL,BC      ; TOP OF STACK IN HL
+               INC   A      ; INCREMENT STACK COUNTER
+               LD    (FCNT),A    ; AND STORE NEW VALUE
+               EX    AF,AF'      ; GET FUNCTION BACK
+               LD    (HL),A      ; PUSH ONTO FUNCTION STACK
+               XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+PUFU1:         POP   BC      ; REPLACE REGISTERS
+               POP   HL
+               RET
+PUFU2:         XOR   A      ; SET ZERO FLAG (STACK FULL)
+               JR    PUFU1
+;*
+;POP FROM FUNCTION STACK TO ACC
+;THE TOP BYTE ON THE FUNCTION STACK IS
+;POPPED INTO THE A REG. IF THE STACK WAS
+;ALREADY EMPTY, THE ZERO FLAG IS SET ON
+;EXIT
+;*
+POFU:          PUSH  HL      ; SAVE REGS.
+               PUSH  BC
+               LD    HL,FSTK      ; LOAD START OF STACK ADDR
+               LD    A,(FCNT)    ; GET STACK COUNTER
+               AND   A      ; TEST FOR EMPTY STACK
+               JR    Z,POFU1
+               DEC   A
+               LD    (FCNT),A
+               LD    C,A
+               LD    B,0
+               ADD   HL,BC
+               XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+               LD    A,(HL)      ; GET STACK TOP TO ACC
+POFU1:         POP   BC      ; REPLACE REGS.
+               POP   HL
+               RET
+;*
+;PUSH FROM DE TO ARITHMETIC STACK
+;THE WORD IN DE IS PUSHED ONTO THE
+;ARITHMETIC STACK. IF NOT POSSIBLE
+;OWING TO THE STACK BEING FULL, THEN
+;THE ZERO FLAG IS SET ON EXIT.
+;*
+PUDE:          PUSH  HL      ; SAVE REGS.
+               PUSH  BC
+               LD    HL,ARSTK    ; LOAD START OF STACK ADDR
+               LD    A,(ARCNT)    ; GET STACK COUNTER
+               CP    MAXASK      ; IS STACK FULL?
+               JR    NC,PUDE2
+               LD    C,A      ; COMPUTE TOP OF STACK
+               LD    B,0
+               ADD   HL,BC      ; TOP OF STACK IN HL
+               ADD   A,2      ; INCREMENT COUNTER BY 1 WORD
+               LD    (ARCNT),A    ; STORE NEW VALUE OF COUNTER
+               LD    (HL),E      ; PUSH DE ONTO STACK
+               INC   HL
+               LD    (HL),D
+               XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+PUDE1:         POP   BC
+               POP   HL
+               RET
+PUDE2:         XOR   A      ; SET ZERO FLAG (ERROR)
+               JR    PUDE1
+;*
+;POP FROM ARITHMETIC STACK TO DE
+;THE TOP WORD ON THE ARITHMETIC STACK
+;IS POPPED INTO THE DE REG PAIR. IF
+;THE STACK WAS EMPTY, THEN THE ZERO
+;FLAG IS SET ON EXIT
+;*
+PODE:          PUSH  HL      ; SAVE REGS
+               PUSH  BC
+               LD    HL,ARSTK    ; LOAD START OF STACK ADDR
+               LD    A,(ARCNT)    ; GET STACK COUNTER
+               AND   A      ; IS STACK EMPTY?
+               JR    Z,PODE1
+               SUB   2      ; DECR STACK COUNTER
+               LD    (ARCNT),A    ; AND SAVE NEW VALUE
+               LD    C,A      ; COMPUTE TOP OF STACK
+               LD    B,0
+               ADD   HL,BC
+               LD    E,(HL)      ; POP STACK TO DE
+               INC   HL
+               LD    D,(HL)
+               XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+PODE1:         POP   BC      ; REPLACE REGS
+               POP   HL
+               RET
+;*
+;PERFORM A FUNCTION
+;ON ENTRY:
+;  A CONTAINS THE COMBINED FUNCTION
+;  TOKEN/PRIORITY VALUE.
+;ON EXIT:
+;  THE REQUIRED ASSEMBLY TIME FUNCTION
+;  HAS BEEN PERFORMED USING VALUE(S)
+;  ON THE ARITHMETIC STACK AND LEAVING
+;  THE RESULT THERE.
+;  IF THE STACK DID NOT CONTAIN ENOUGH
+;       VALUES THEN THE ZERO FLAG IS SET.
+;
+;THE FOLLOWING SUBROUTINES STARTING WITH
+;THE LETTER F ARE ALL ASSEMBLY TIME
+;ARITHMETIC/LOGIC FUNCTIONS, OPERATING ON
+;THE ARITHMETIC STACK, AND BEING CALLED
+;INDIRECTLY BY FUNC
+;*
+FUNC:          PUSH  HL      ; SAVE REGS.
+               PUSH  DE
+               PUSH  BC
+               SRL   A      ; GET (FUNC TOKEN)*
+               SRL   A
+               AND   &FE
+               LD    C,A      ; COMPUTE POINTER TO SUBROUTINE
+               LD    B,0      ; START ADDR POINTER
+               LD    HL,FUNLST
+               ADD   HL,BC
+               LD    E,(HL)      ; PUT SUBR START ADDR IN HL
+               INC   HL
+               LD    D,(HL)
+               EX    DE,HL
+               LD    DE,FUNC1    ; CALL RELEVANT FUNCTION INDIRECTLY
+               PUSH  DE
+               JP    (HL)
+FUNC1:         POP   BC
+               POP   DE
+               POP   HL
+NOU:           RET
+;.............................................................
+;FUNCTION LIST.
+;CONTAINS POINTERS TO THE FUNCTION
+;SUBROUTINES, USED BY SUBR "FUNC"
+;FOR AN INDIRECT SUBR CALL BASED ON
+;THE VALUE OF THE ARITHMETIC
+;FUNCTION TOKEN.
+;.............................................................
+FUNLST:        DW    FMNPL  ;0
+               DW    FMNMN
+               DW    FNOT   ;2
+               DW    FHIGH
+               DW    FLOW   ;4
+               DW    FRES
+               DW    FEXP   ;6
+               DW    FMULT
+               DW    FDIV   ;8
+               DW    FMOD   ;9
+               DW    FSHR   ;10
+               DW    FSHL
+               DW    FDIPL  ;12
+               DW    FDIMN
+               DW    FAND   ;14
+               DW    FOR    ;15
+               DW    FXOR   ;16
+               DW    FEQ    ;17
+               DW    NOU    ;18
+               DW    NOU
+               DW    FUGT   ;20
+               DW    FULT
+
+;*
+;FUNCTION MONADIC PLUS.
+;*
+FMNPL:         PUSH  DE      ; SAVE REG
+               CALL  PODE      ; SEE IF VALUE AVAILABLE ON STACK
+               JR    Z,FMNPL1    ; JUMP IF NOT (ZERO SET)
+               CALL  PUDE      ; PUSH BACK ON STACK
+FMNPL1:        POP   DE      ; REPLACE REG
+               RET
+;*
+;FUNCTION MONADIC MINUS.
+;*
+FMNMN:         PUSH  DE      ; SAVE REGS.
+               PUSH  HL
+               CALL  PODE      ; GET VALUE OFF ARITH STACK
+               JR    Z,FMNMN1    ; JUMP IF EMPTY
+               LD    HL,0      ; PUT 0 INTO HL
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; SUBTRACT VALUE FROM 0
+               EX    DE,HL      ; GET RESULT IN DE
+               CALL  PUDE      ; PUSH BACK ON STACK
+FMNMN1:        POP   HL      ; REPLACE REGS.
+               POP   DE
+               RET
+;*
+;FUNCTION NOT
+;*
+FNOT:          PUSH  DE      ; SAVE REG.
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FNOT1      ; JUMP IF EMPTY
+               LD    A,D      ; COMPLEMENT DE
+               CPL
+               LD    D,A
+               LD    A,E
+               CPL
+               LD    E,A
+               CALL  PUDE      ; PUSH BACK ON ARITH STACK
+FNOT1:         POP   DE      ; REPLACE REG.
+               RET
+;*
+;FUNCTION HIGH.
+;RETURNS HIGH BYTE OF ARGUMENT AS RESULT.
+;*
+FHIGH:         PUSH  DE      ; SAVE REGISTERS
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FHIGH1    ; ERROR IF EMPTY
+               LD    E,D      ; PUT HIGH BYTE IN DE
+               LD    D,0
+               CALL  PUDE      ; PUSH RESULT ON ARITH STACK
+FHIGH1:        POP   DE
+               RET
+;*
+;FUNCTION LOW.
+;RETURNS LOW BYTE OF ARGUMENT AS RESULT.
+;*
+FLOW:          PUSH  DE      ; SAVE REGISTERS
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FLOW1      ; ERROR IF EMPTY
+               LD    D,0      ; LOW BYTE ONLY REQD
+               CALL  PUDE      ; PUSH BACK RESULT
+FLOW1:         POP   DE      ; REPLACE REGS
+               RET
+;*
+;FNCTION RESULT
+;CLEARS ARITHMETIC OVERFLOW FLAG
+;*
+FRES:          EXX        ; CLEAR OVERFLOW FLAG
+               RES   1,B      ; BIT 1 IN REG B
+               EXX
+               RET
+;*
+;FUNCTION EXPONENTIATE
+;*
+FEXP:          PUSH  HL      ; SAVE REGS
+               PUSH  DE
+               CALL  PODE      ; GET EXPONENT FROM STACK
+               JR    Z,FEXP5      ; JMP IF ARITH STACK EMPTY
+               EX    DE,HL      ; PUT EXPONENT IN HL
+               CALL  PODE      ; GET OTHER NUMBER IN DE
+               JR    Z,FEXP5      ; JUMP IF STACK EMPTY
+               LD    A,H      ; EXPONENT ZERO?
+               OR    L
+               JR    NZ,FEXP1    ; JUMP IF NOT
+               LD    DE,1      ; RESULT = 1
+               CALL  PUDE      ; PUSH IT ON STACK
+               JR    FEXP5
+FEXP1:         BIT   7,H      ; EXPONENT NEGATIVE?
+               JR    Z,FEXP2      ; JUMP IF NOT
+               LD    DE,0      ; RESULT = 0
+               CALL  PUDE      ; PUSH IT ON STACK
+               JR    FEXP5
+FEXP2:         CALL  PUDE      ; PUSH THE NUMBER
+FEXP3:         DEC   HL      ; DECR EXPONENT
+               LD    A,H      ; IS IT ZERO NOW?
+               OR    L
+               JR    Z,FEXP4      ; JUMP IF SO
+               CALL  PUDE      ; PUSH THE NUMBER
+               CALL  FMULT      ; & MULTIPLY
+               JR    FEXP3      ; LOOP
+FEXP4:         XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+FEXP5:         POP   DE      ; REPLACE REGISTERS
+               POP   HL
+               RET
+; *
+; FUNCTION MULTIPLY
+; *
+FMULT:         PUSH  HL      ; SAVE REGISTERS
+               PUSH  DE
+               PUSH  BC
+               EXX
+               PUSH  DE
+               LD    E,0      ; CLEAR E" (SIGN FLAG)
+               EXX
+               CALL  PODE      ; GET A VALUE FROM ARITH STACK
+               JR    Z,FMULT6    ; JUMP IF EMPTY
+               EX    DE,HL
+               CALL  PODE      ; GET ANOTHER VALUE FROM STACK
+               JR    Z,FMULT6    ; JUMP IF EMPTY
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; TEST FOR LARGER NO.
+               ADD   HL,DE      ; MULTIPLIER SHOULD BE SMALLER
+               JR    NC,FMULT1    ; JUMP IF CORRECT
+               EX    DE,HL      ; OTHERWISE SWAP NOS.
+FMULT1:        LD    B,H      ; PUT MULTIPLICAND IN BC
+               LD    C,L
+               LD    HL,0      ; CLEAR HL FOR ACCUMALATOR
+FMULT2:        LD    A,D      ; IS MULTIPLIER 0?
+               OR    E
+               JR    Z,FMULT5    ; JUMP IF FINISHED
+               SRL   D      ; SHIFT DE RIGHT INTO CARRY
+               RR    E
+               JR    NC,FMULT4    ; JUMP IF ZERO CARRY
+               AND   A      ; CLEAR CARRY
+               ADC   HL,BC      ; ADD MULTIPLICAND TO RUNNING TOTAL
+               JP    M,FMULT3    ; JUMP IF OVERFLOW TO BIT 15
+               JR    NC,FMULT4    ; JUMP IF NO O/F TO BIT 16
+FMULT3:        EXX        ; SET OVERFLOW FLAG
+               SET   1,B
+               EXX
+FMULT4:        SLA   C      ; SHIFT MULTIPLICAND LEFT
+               RL    B
+               JR    FMULT2      ; LOOP
+FMULT5:        EX    DE,HL      ; GET RESULT BACK IN DE
+               CALL  PUDE      ; PUSH PRODUCT ONTO ARITH STACK
+FMULT6:        EXX        ; REPLACE REGS.
+               POP   DE
+               EXX
+               POP   BC
+               POP   DE
+               POP   HL
+               RET
+;*
+;FUNCTION DIVIDE
+;*
+FDIV:          PUSH  HL      ; SAVE REGISTERS
+               PUSH  DE
+               CALL  PODE      ; GET DIVISOR FROM ARITH STACK
+               JR    Z,FDIV1      ; JUMP IF EMPTY
+               EX    DE,HL      ; PUT IN HL
+               CALL  PODE      ; GET DIVIDEND FROM ARITH STACK
+               JR    Z,FDIV1      ; JUMP IF EMPTY
+               CALL  DIV      ; DO THE DIVISION
+               CALL  PUDE      ; PUSH QUOTIENT (IN DE) ONTO STACK
+FDIV1:         POP   DE      ; REPLACE REGISTERS
+               POP   HL
+               RET
+;*
+;FUNCTION MODULO
+;*
+FMOD:          PUSH  HL      ; SAVE REGISTERS
+               PUSH  DE
+               CALL  PODE      ; GET DIVISOR FROM ARITH STACK
+               JR    Z,FMOD1      ; JUMP IF EMPTY
+               EX    DE,HL      ; PUT IN HL
+               CALL  PODE      ; GET DIVIDEND FOM ARITH STACK
+               JR    Z,FMOD1      ; JUMP IF EMPTY
+               CALL  DIV      ; DO THE DIVISION
+               EX    DE,HL      ; GET REMAINDER IN DE
+               CALL  PUDE      ; PUSH ONTO ARITH STACK
+FMOD1:         POP   DE      ; REPLACE REGISTERS
+               POP   HL
+               RET
+;*
+;DIVIDE
+;THIS SUBROUTINE IS USED BY FDIV AND FMOD
+;IT DIVIDES DE BY HL, LEAVING THE QUOTIENT
+;IN DE AND THE REMAINDER IN HL.
+;SIGNED 16 BIT ARITHMETIC IS USED.
+;*
+DIV:           PUSH  BC      ; SAVE REGISTERS
+               EXX
+               PUSH  DE
+               LD    DE,0      ; CLEAR DE" (D"=PLACE COUNT)
+               EXX
+
+               EX    DE,HL      ; SWAP NOS.
+               LD    A,D      ; IS DIVISOR ZERO?
+               OR    E
+               JR    NZ,DIV2      ; JUMP IF NOT
+               LD    C,"Z"      ; FLAG "DIV BY ZERO" ERROR
+               CALL  ERROR
+               LD    HL,0      ; RETURN ZERO RESULTS
+               LD    DE,0
+               JR    DIV6      ; GO TO END
+
+DIV2:          EXX        ; INCR PLACE COUNT
+               INC   D
+               EXX
+               SLA   E      ; SHIFT DIVISOR LEFT UNTIL SIGN
+               RL    D      ; SET, COUNTING NO. OF PLACES
+               JP    P,DIV2
+               LD    BC,0      ; CLEAR QUOTIENT REG BC
+DIV3:          SLA   C      ; SHIFT QUOTIENT LEFT
+               RL    B
+               SRL   D
+               RR    E
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; SUBTRACT DIVISOR FROM DIVIDEND
+               JR    C,DIV4      ; JUMP IF TOO MUCH SUBTRACTION
+               INC   BC      ; OTHERWISE INCR QUOTIENT
+               JR    DIV5
+DIV4:          ADD   HL,DE      ; REPLACE EXCESSIVE SUBTRACTION
+DIV5:          EXX        ; DECR PLACE COUNT
+               DEC   D
+               EXX
+               JR    NZ,DIV3      ; LOOP IF NOT FINISHED
+               LD    D,B      ; TRANSFER QUOTIENT TO DE
+               LD    E,C
+DIV6:          EXX        ; REPLACE REGISTERS
+               POP   DE
+               EXX
+               POP   BC
+               RET
+;*
+;NEGATE DE
+;USED BE FMULT AND DIV TO NEGATE CONTENTS OF DE
+;AND COMPLEMENT A SIGN FLAG HELD IN E" BIT 0
+;*
+NEGDE:         PUSH  HL      ; SAVE HL
+               LD    HL,0      ; NEGATE SIGNED NO. IN DE
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; SUBTRACT DE FROM 0
+               EX    DE,HL      ; GET RESULT INTO DE
+               EXX        ; COMPLEMENT PRODUCT SIGN
+          ; BIT IN E"
+               RR    E
+               CCF
+               RL    E
+               EXX
+               POP   HL
+               RET
+;*
+;FUNCTION SHIFT RIGHT.
+;*
+FSHR:          PUSH  DE      ; SAVE REGS.
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FSHR3      ; ERROR IF EMPTY
+               EX    DE,HL      ; OTHERWISE PUT IN HL
+               CALL  PODE      ; GET VALUE TO BE SHIFTED
+               JR    Z,FSHR3      ; JUMP IF EMPTY, ERROR
+FSHR1:         LD    A,H      ; TEST HL FOR ZERO
+               OR    L      ; AND CLEAR CARRY
+               JR    Z,FSHR2      ; JUMP IF NO MORE SHIFTING
+               SRL   D      ; SHIFT DE RIGHT ONE BIT
+               RR    E
+               DEC   HL      ; DECR NO. OF SHIFTS REQD
+               JR    FSHR1      ; LOOP
+FSHR2:         CALL  PUDE      ; PUSH RESULT BACK ON STACK
+FSHR3:         POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;FUNCTION SHIFT LEFT
+;*
+FSHL:          PUSH  DE      ; SAVE REGS.
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FSHL3      ; JUMP IF EMPTY, ERROR
+               EX    DE,HL      ; GET VALUE IN HL
+               CALL  PODE      ; GET VALUE TO BE SHIFTED
+               JR    Z,FSHL3      ; ERROR IF EMPTY
+FSHL1:         LD    A,H      ; TEST HL FOR ZERO
+               OR    L      ; AND CLEAR CARRY
+               JR    Z,FSHL2
+               SLA   E      ; SHIFT DE LEFT 1 BIT
+               RL    D
+               DEC   HL      ; DECR NO. OF SHIFTS REGD.
+               JR    FSHL1      ; LOOP
+FSHL2:         CALL  PUDE      ; PUSH RESULT ON ARITH STACK
+FSHL3:         POP   HL      ; REPLACE REGS.
+               POP   DE
+               RET
+;*
+;FUNCTION DIADIC ADDITION
+;*
+FDIPL:         PUSH  HL      ; SAVE REGISTERS
+               PUSH  DE
+               CALL  PODE      ; GET 1ST VALUE TO BE ADDED
+               JR    Z,FDIPL6    ; STACK EMPTY- ERROR
+               EX    DE,HL      ; PUT 1ST VALUE IN HL
+               CALL  PODE      ; GET 2ND VALUE
+               JR    Z,FDIPL6    ; STACK EMPTY ERROR
+               ADD   HL,DE
+               EX    DE,HL      ; GET RESULT IN DE
+               CALL  PUDE      ; PUSH RESULT ON STACK
+FDIPL6:        POP   DE
+               POP   HL
+               RET
+;*
+;FUNCTION DIADIC MINUS.
+;*
+FDIMN:         PUSH  HL      ; SAVE REGS.
+               PUSH  DE
+               CALL  PODE      ; GET MINUEND FROM STACK
+               JR    Z,FDIMN6    ; JUMP IF EMPTY, ERROR
+               EX    DE,HL      ; PUT IN HL
+               CALL  PODE      ; GET SUBTRAHEND
+               JR    Z,FDIMN6    ; JUMP IF EMPTY
+               EX    DE,HL      ; GET SUBTRAHEND IN HL
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; DO THE SUBTRACTION
+               EX    DE,HL      ; GET THE RESULT IN DE
+               CALL  PUDE      ; PUSH RESULT ON ARITH STACK
+FDIMN6:        POP   DE      ; REPLACE REGS
+               POP   HL
+               RET
+;*
+;FUNCTION AND
+;*
+FAND:          PUSH  DE      ; SAVE REGISTERS
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM STACK
+               JR    Z,FAND1      ; JUMP IF EMPTY
+               EX    DE,HL
+               CALL  PODE      ; GET THE OTHER VALUE
+               JR    Z,FAND1      ; JUMP IF STACK EMPTY
+               LD    A,D      ; DO 16 BIT LOGICAL AND
+               AND   H
+               LD    D,A      ; WITH RESULT IN DE
+               LD    A,E
+               AND   L
+               LD    E,A
+               CALL  PUDE      ; PUSH RESULT ON STACK
+FAND1:         POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;FUNCTION OR
+;*
+FOR:           PUSH  DE      ; SAVE REGS.
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FOR1      ; JUMP IF STACK EMPTY
+               EX    DE,HL      ; PUT IN HL
+               CALL  PODE      ; GET THE OTHER VALUE
+               JR    Z,FOR1      ; JUMP IF STACK EMPTY
+               LD    A,D      ; DO 16 BIT LOGICAL OR
+               OR    H      ; ON HL AND DE
+               LD    D,A      ; RESULT IN DE
+               LD    A,E
+               OR    L
+               LD    E,A
+               CALL  PUDE      ; PUSH RESULT ON STACK
+FOR1:          POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;FUNCTION EXCLUSIVE OR
+;*
+FXOR:          PUSH  DE      ; SAVE REGS
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FXOR1      ; JUMP IF STACK EMPTY
+               EX    DE,HL      ; PUT IT IN HL
+               CALL  PODE      ; GET THE OTHER VALUE
+               JR    Z,FXOR1      ; JUMP IF STACK EMPTY
+               LD    A,D      ; DO 16 BIT XOR ON HL AND DE
+               XOR   H
+               LD    D,A      ; RESULT IN DE
+               LD    A,E
+               XOR   L
+               LD    E,A
+               CALL  PUDE      ; PUSH RESULT ON ARITH STACK
+FXOR1:         POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;FUNCTION EQUALS
+;*
+FEQ:           PUSH  DE      ; SAVE REGS
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FEQ2      ; JUMP IF STACK EMPTY
+               EX    DE,HL      ; PUT IT IN HL
+               CALL  PODE      ; GET ANOTHER VALUE IN DE
+               JR    Z,FEQ2      ; JUMP IF STACK EMPTY
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; COMPARE VALUES
+               LD    DE,0      ; RESULT IN DE (0 OR 1)
+               JR    NZ,FEQ1      ; JUMP IF VALUES NOT EQUAL
+               DEC   DE      ; OTHERWISE LET RESULT= -1
+FEQ1:          CALL  PUDE      ; PUSH RESULT ON STACK
+FEQ2:          POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;FUNCTION UNSIGNED GREATER THAN
+;*
+FUGT:          PUSH  DE      ; SAVE REGS
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FUGT2      ; JUMP IF STACK EMPTY
+               EX    DE,HL
+               CALL  PODE      ; GET THE OTHER VALUE IN DE
+               JR    Z,FUGT2      ; JUMP IF STACK EMPTY
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; COMPARE VALUES
+               LD    DE,0      ; RESULT IN DE (0 OR 1)
+               JR    NC,FUGT1    ; JUMP IF NOT GREATER THAN
+               DEC   DE      ; OTHERWISE RESULT= -1
+FUGT1:         CALL  PUDE      ; PUSH RESULT ON STACK
+FUGT2:         POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;FUNCTION UNSIGNED LESS THAN
+;*
+FULT:          PUSH  DE      ; SAVE REGS.
+               PUSH  HL
+               CALL  PODE      ; GET VALUE FROM ARITH STACK
+               JR    Z,FULT2      ; JUMP IF STACK EMPTY
+               EX    DE,HL      ; PUT VALUE IN HL
+               CALL  PODE      ; GET THE OTHER VALUE IN DE
+               JR    Z,FULT2      ; JUMP IF STACK EMPTY
+               EX    DE,HL      ; SWAP NOS.
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; COMPARE VALUES
+               LD    DE,0      ; RESULT IN DE (0 OR 1)
+               JR    NC,FULT1    ; JUMP IF NO LESS THAN
+               DEC   DE      ; OTHERWISE RESULT= -1
+FULT1:         CALL  PUDE      ; PUSH RESULT ON STACK
+FULT2:         POP   HL      ; REPLACE REGS
+               POP   DE
+               RET
+
+
+;GET DEFM OPERAND.
+;ON ENTRY:
+;  (LINPNT) POINTS AT CHAR AFTER
+;  DEFM PSEUDO-OPERATOR.
+;ON EXIT:
+;       THE OPERAND (A STRING BETWEEN QUOTES)
+;       HAS BEEN TRANSFERED INTO THE
+;       ASSEMBLED CODE BUFFER.
+
+DEFMS:         PUSH  HL      ; SAVE REGISTERS
+               PUSH  DE
+               PUSH  BC
+               LD    HL,(LINPNT)    ; GET LINE POINTER
+               CALL  STR      ; FIND STRING
+               JR    Z,DM4      ; NOT FOUND
+               LD    A,C      ; GET COUNT OF STRING
+               CP    ACBSIZ+1    ; MORE CHARS THAN SIZE OF A.C. BUFF?
+               JR    C,DM1      ; NO
+               LD    C,ACBSIZ    ; YES, FORCE TO SIZE OF BUFFER
+               JR    DM2
+DM1:           AND   A
+               JR    Z,DM4
+DM2:           LD    A,C      ; SET NO. OF ASSD BYTES
+               LD    (ASCDNO),A
+               NOP        ; ROOM FOR SPARE INSTRUCTION
+               NOP
+               NOP
+               EX    DE,HL      ; DO TRANSFER
+               LD    DE,ASSCOD
+DM3:           CALL  DOUBQ      ; SKIP CHAR IF DOUBLE QUOTE
+               LDI        ; TRANSFER A CHAR
+               JP    PE,DM3      ; JUMP IF TRANSFER NOT COMPLETE
+DM4:           POP   BC      ; REPLACE REGISTERS
+               POP   DE
+               POP   HL
+               RET
+
+HEADER:        CALL  DEFMS
+               LD    HL,ASCDNO
+               LD    A,(HL)
+               LD    (HL),0
+               CP    1
+               RET   C
+               CP    10
+               JR    NC,HEAD1
+               LD    B,A
+               LD    A,10
+               SUB   B
+               LD    C,B
+               LD    B,0
+               LD    HL,ASSCOD
+               ADD   HL,BC
+               LD    B,A
+               LD    (HL)," "
+               INC   HL
+               DJNZ  $-3
+HEAD1:         LD    HL,ASSCOD
+               LD    A,19
+               CALL  FILE_INFO
+               LD    (FPTR),HL
+               RET
+
+INCLUDE:       LD    HL,AFLAGS
+               BIT   3,(HL)
+               LD    C,"0"
+               JP    NZ,ERROR ; INCLUDE IN ...
+               LD    A,(PASSNO)
+               CP    2
+               LD    A,(NOINC)
+               JR    NZ,NOTWO
+               CP    1
+               JR    Z,CACHE   ; PASS 2 && PRAVE 1
+NOTWO:         INC   A
+               LD    (NOINC),A
+               CALL  HEADER
+               LD    C,"D"    ; DISK ERROR
+               JP    C,ERROR
+               LD    A,(FREE)
+               LD    HL,(FREE+1)
+               LD    C,A
+               EX    DE,HL
+               LD    HL,ASSCOD
+               LD    A,19
+               CALL  LOAD
+               LD    C,"D"
+               JP    C,ERROR
+
+CACHE:         LD    HL,AFLAGS
+               SET   3,(HL)
+               LD    A,(SRCPTR)
+               LD    HL,(SRCPTR+1)
+               LD    (SRC2),A
+               LD    (SRC2+1),HL
+               LD    A,(FREE)
+               LD    HL,(FREE+1)
+               RES   7,H
+               OR    32
+               LD    (SRCPTR),A
+               INC   HL
+               LD    (SRCPTR+1),HL
+               RET
+
+MDATS:         CALL  HEADER
+               LD    C,"D"    ; DISK ERROR
+               JP    C,ERROR
+               LD    A,(DSTPTR)
+               LD    HL,(DSTPTR+1)
+               LD    C,A
+               EX    DE,HL
+               PUSH  BC
+               PUSH  DE
+               LD    HL,(FPTR)
+               LD    BC,14
+               ADD   HL,BC
+               LD    C,(HL)
+               INC   HL
+               LD    E,(HL)
+               INC   HL
+               LD    D,(HL)
+               LD    A,(DSTPTR)
+               LD    HL,(DSTPTR+1)
+               SET   7,H
+               RES   7,D
+               PUSH  BC
+               PUSH  DE
+               RST   40
+               DB    6
+               LD    (DSTPTR),A
+               RES   7,H
+               LD    (DSTPTR+1),HL
+               POP   HL
+               POP   BC
+               LD    A,C
+               AND   3
+               RRCA
+               RRCA
+               RES   7,H
+               OR    H
+               LD    H,A
+               LD    DE,(ADREFC)
+               ADD   HL,DE
+               LD    (ADREFC),HL
+               POP   DE
+               POP   BC
+               LD    HL,ASSCOD
+               LD    A,(PASSNO)
+               CP    1
+               LD    A,19
+               SET   7,D
+               CALL  NZ,LOAD
+               LD    C,"D"
+               JP    C,ERROR
+               RET
+
+;*
+;LOCATE STRING
+;ON ENTRY:
+;       HL POINTS TO CHAR AFTER OPERAND
+;ON EXIT:
+;       HL POINTS TO FIRST CHAR OF ACTUAL STRING.
+;       BC CONTAINS NO OF CHARS IN THAT STRING
+;          (COUNTING 2 QUOTES AS 1 CHAR)
+;       ZERO FLAG IS SET FOR SYNTAX ERROR
+;*
+STR:           CALL  SCNSP      ; SCAN TO NEXT NON SP CHAR
+               CP    34        ; IS IT A " ?
+               JR    NZ,STR4      ; SYNTAX ERROR, STRING NOT FOUND
+               INC   HL      ; POINT TO NEXT CHAR
+               LD    D,H      ; SAVE POINTER IN DE
+               LD    E,L
+               LD    BC,0      ; CLEAR BC
+STR1:          ; COUNT CHARS TO NEXT 7
+               CALL  DOUBQ      ; END OF STRING QUOTE?
+               JR    NZ,STR2      ; JUMP IF SO
+               LD    A,(HL)      ; GET CHAR
+               CP    CR      ; IS IT CR?
+               JR    Z,STR4      ; JUMP IF SO, ERROR
+               INC   HL      ; INCR PNTR
+               INC   C      ; AND CNTR
+               JR    STR1      ; LOOP
+STR2:          XOR   A
+               INC   A
+               RET
+STR4:          LD    C,"S"      ; SYNTAX ERROR, STRING NOT FOUND
+               CALL  ERROR      ; INDICATE ERROR
+               XOR   A      ; SET ZERO FLAG (FOR ERROR)
+               RET        ; AND RETURN
+;*
+;PROCESS TOKENS
+;PRODUCE ASSEMBLED CODE IN BUFFER BASED ON OPERATOR
+;AND OPERAND TOKENS.
+;*
+PTOK:          PUSH  IX      ; SAVE REGS
+               PUSH  HL
+               PUSH  DE
+               PUSH  BC
+               LD    A,(ODBT1)    ; PUT OPD BYTE 1 IN B
+               LD    B,A
+               LD    A,(ODBT2)    ; PUT OPD BYTE 2 IN C
+               LD    C,A
+               LD    HL,(ODINT1)    ; PUT OPD INTEGER IN HL
+               LD    DE,(ODINT2)    ; PUT OPD INTEGER IN DE
+               LD    A,(ORTKBF)    ; GET OPERATOR TOKEN
+               CP    ORGTOK      ; TOKEN FOR ORG?
+               JR    Z,PTOK4      ; JUMP IF SO
+               CALL  PLAB      ; PROCESS LABEL
+               EXX
+               PUSH  HL      ; SAVE REGS
+               PUSH  DE
+               PUSH  BC
+               LD    A,(ORTKBF)    ; GET TOKEN AGAIN
+               AND   127      ; MASK OFF CONDITIONAL FLAG BIT
+               ADD   A,A      ; DOUBLE IT
+               LD    E,A      ; PUT INTO DE
+               LD    D,0
+               LD    HL,PORL      ; PUT "PROCESS OPR" LIST PNTR IN HL
+               ADD   HL,DE      ; ADD DE TO GET PNTR TO PNTR TO ROUTIN
+               LD    E,(HL)      ; GET POINTER IN DE
+               INC   HL
+               LD    D,(HL)
+               EX    DE,HL      ; PUT IN HL
+               CALL  ODPBT      ; GET OPD PAIR BYTE
+               LD    B,A      ; SAVE IN B
+PTOK1:         LD    A,(HL)      ; GET VALID TOKEN FROM LIST
+               INC   HL      ; INCR LIST POINTER
+               CP    &FF       ; COMPARE WITH END OF LIST FLAG
+               JR    Z,PTOK3      ; END OF LIST, NOT VALID COMBINATION
+               CP    &FE       ; E.O.L. - NO NOP"S, NO ERROR IND
+               JR    Z,PTOK8
+               CP    &FD       ; END OF LIST - ERROR IND ONLY
+               JR    NZ,PTOK9
+               LD    C,"S"      ; INDICATE SYNTAX ERROR
+               CALL  ERROR
+               JR    PTOK8
+PTOK9:         CP    B      ; COMPARE TOKEN
+               JR    Z,PTOK2      ; JUMP IF MATCH
+               INC   HL      ; POINT TO NEXT TOKEN
+               INC   HL
+               JR    PTOK1      ; AND LOOP
+PTOK2:         LD    C,(HL)      ; GET ADDR OF SUBROUTINE FROM LIST
+               INC   HL
+               LD    H,(HL)
+               LD    L,C
+               PUSH  HL      ; GET ADDR IN IX
+               POP   IX
+               LD    HL,PTOK8    ; PUSH RETURN ADDR
+               PUSH  HL
+               EXX        ; SWAP REGISTER BANKS
+               JP    (IX)      ; AND CALL INDIRECT
+PTOK3:         CALL  DNOPS      ; SYNTAX ERROR, APPEND NOP"S
+               JR    PTOK8
+PTOK4:         CALL  PORG      ; PROCESS ORG
+               JR    PTOK7
+PTOK8:         CALL  ADJARC      ; ADJUST ADDR REF CNTR
+               EXX        ; REPLACE REGS
+               POP   BC
+               POP   DE
+               POP   HL
+               EXX
+PTOK7:         POP   BC
+               POP   DE
+               POP   HL
+               POP   IX
+               RET
+;*
+;SYNTAX ERROR
+;ALL THE FOLLOWING PROCESS SUBROUTINES
+;RETURN VIA THIS SUBROUTINE IF THEY
+;NEED TO APPEND NOP"S IF THE CASE OF
+;A SYNTAX ERROR.
+;*
+SYNERR:        CALL  DNOPS      ; ERROR, APPEND DEFAULT NOP"S
+               RET
+;...................................................
+;PROCESS OPERATOR LIST
+;CONTAINS ADDRESSES OF SUBROUTINES
+;TO PROCESS VARIOUS OPERATOR GROUPS.
+;...................................................
+PORL:          DW    LSTNUL      ; NULL ROUTINE FOR NO OPERATOR
+               DW    LSTNUL      ; NULL ROUTINE FOR ORG
+               DW    LSTNUL      ; NULL ROUTINE FOR EQU
+               DW    LSTNUL      ; NULL FOUTINE FOR DEFL
+               DW    LST04      ; DUMP
+               DW    LSTNUL     ; DEFB
+               DW    LSTNUL     ; DEFW
+               DW    LST07      ; DEFS
+               DW    LSTNUL      ; NULL ROUTINE FOR DEFM
+               DW    LSTNUL      ; NULL ROUTINE FOR MDAT
+               DW    LST0B      ; SINGLE BYTE, NO OPERAND
+               DW    LST0B      ; DOUBLE BYTE, NO OPERAND
+               DW    LST0C      ; AND OR XOR CP SUB
+               DW    LST0D      ; INC DEC
+               DW    LST0E      ; IM
+               DW    LST0F      ; RLC RL SLA RRC RR SRA SRL
+               DW    LST10      ; BIT SET RES
+               DW    LST11      ; JP
+               DW    LST12      ; JR
+               DW    LST13      ; DJNZ
+               DW    LST14      ; CALL
+               DW    LST15      ; RET
+               DW    LST16      ; RST
+               DW    LST17      ; IN
+               DW    LST18      ; OUT
+               DW    LST19      ; PUSH POP
+               DW    LST1A      ; EX
+               DW    LST1B      ; ADC SBC
+               DW    LST1C      ; ADD
+               DW    LST1D      ; LD
+;.........................................................
+LSTNUL:        DB    -2
+;.........................................................
+LST04:         DB    &90       ; SINGLE INTEGER
+               DW    GP04      ; DUMP   NN
+               DB    &99
+               DW    GP04A     ; DUMP NN,NN
+               DB    &FD
+;.........................................................
+LST07:         DB    &90       ; DEFS N
+               DW    GP07
+               DB    &FD
+;.........................................................
+LST0B:         DB    0      ; NO OPERAND
+               DW    GP0B
+               DB    -1
+;.........................................................
+LST0C:         DB    &70       ; OPR R
+               DW    GP0C1
+               DB    &90       ; OPR N
+               DW    GP0C2
+               DB    64       ; OPR (HL)/(IX)/(IY)
+               DW    GP0C3
+               DB    &B0       ; OPR (IX+D)/(IY+D)
+               DW    GP0C3
+               DB    &FF
+;.........................................................
+LST0D:         DB    &70       ; OPR R
+               DW    GP0D1
+               DB    &40       ; OPR (HL)/(IX)/(IY)
+               DW    GP0D2
+               DB    &B0       ; OPR (IX+D)/(IY+D)
+               DW    GP0D2
+               DB    &10       ; OPR RP
+               DW    GP0D3
+               DB    &FF
+;..........................................................
+LST0E:         DB    &90       ; IM N
+               DW    GP0E
+               DB    &FF
+;..........................................................
+LST0F:         DB    &70       ; OPR R
+               DW    GP0F1
+               DB    &40       ; OPR (HL)/(IX)/(IY)
+               DW    GP0F2
+               DB    &B0       ; OPR (IX+D)/(IY+D)
+               DW    GP0F2
+               DB    &FF
+;..........................................................
+LST10:         DB    &97       ; OPR B,R
+               DW    GP101
+               DB    &94       ; OPR B,(HL)/(IX)/(IY)
+               DW    GP102
+               DB    &9B       ; OPR B,(IX+D)/(IY+)
+               DW    GP102
+               DB    &FF
+;...........................................................
+LST11:         DB    &40       ; JP (HL)/(IX)/(IY)
+               DW    GP111
+               DB    &89       ; JP CC,NN
+               DW    GP112
+               DB    &90       ; JP NN
+               DW    GP113
+               DB    -1
+;............................................................
+LST12:         DB    &89       ; JR CC,E
+               DW    GP121
+               DB    &90       ; JR E
+               DW    GP122
+               DB    -1
+;............................................................
+LST13:         DB    &90       ; DJNZ NN
+               DW    GP13
+               DB    &FF
+;...........................................................
+LST14:         DB    &89        ; CALL CC,NN
+               DW    GP141
+               DB    &90       ; CALL NN
+               DW    GP142
+               DB    &FF
+;............................................................
+LST15:         DB    00       ; RET
+               DW    GP151
+               DB    128      ; RET CC
+               DW    GP152
+               DB    &FF
+;............................................................
+LST16:         DB    &90       ; RST N
+               DW    GP16
+               DB    &FF
+;............................................................
+LST17:         DB    &7D       ; IN A,(N)
+               DW    GP171
+               DB    &7A       ; IN R,(C)
+               DW    GP172
+               DB    &FF
+;............................................................
+LST18:         DB    &A7       ; OUT (C),R
+               DW    GP181
+               DB    &D7       ; OUT (N),A
+               DW    GP182
+               DB    &FF
+;.............................................................
+LST19:         DB    &10       ; OPR RP
+               DW    GP19
+               DB    &FF
+;.............................................................
+LST1A:         DB    &51       ; EX (SP),HL/IX/IY
+               DW    GP1A1
+               DB    &11       ; EX AF,AF
+               DW    GP1A2
+               DB    &FF
+;.............................................................
+LST1B:         DB    &77       ; OPR A,R
+               DW    GP1B1
+               DB    &79       ; OPR A,N
+               DW    GP1B2
+               DB    &74       ; OPR A,(HL)/(IX)/(IY)
+               DW    GP1B3
+               DB    &7B       ; OPR A,(IX+D)/(IY+D)
+               DW    GP1B3
+
+               DB    &70       ; OPR A,R
+               DW    GP1B1A
+               DB    &90       ; OPR A,N
+               DW    GP1B2A
+               DB    &40       ; OPR A,(HL)/(IX)/(IY)
+               DW    GP1B3A
+               DB    &B0       ; OPR A,(IX+D)/(IY+D)
+               DW    GP1B3A
+
+               DB    &11       ; OPR HL,SS
+               DW    GP1B4
+               DB    &FF
+;...............................................................
+LST1C:         DB    &77       ; ADD A,R
+               DW    GP1C1
+               DB    &79       ; ADD A,N
+               DW    GP1C2
+               DB    &74       ; ADD A,(HL)/(IX)/(IY)
+               DW    GP1C3
+               DB    &7B       ; ADD A,(IX+D)/(IY+D)
+               DW    GP1C3
+
+               DB    &70       ; ADD A,R
+               DW    GP1C1A
+               DB    &90       ; ADD A,N
+               DW    GP1C2A
+               DB    &40       ; ADD A,(HL)/(IX)/(IY)
+               DW    GP1C3A
+               DB    &B0       ; ADD A,(IX+D)/(IY+D)
+               DW    GP1C3A
+
+               DB    &11       ; ADD HL/IX/IY,RP
+               DW    GP1C4
+               DB    &FF
+;..............................................................
+LST1D:         DB    &76       ; LD A,(BC)/(DE)
+               DW    GP1D1
+               DB    &72       ; LD A,I/R
+               DW    GP1D2
+               DB    &7D       ; LD A,(NN)
+               DW    GP1D3
+               DB    &67       ; LD (BC)/(DE),A
+               DW    GP1D4
+               DB    &49       ; LD (HL)/(IX)/(IY),N
+               DW    GP1D5
+               DB    &19       ; LD RP,NN
+               DW    GP1D6
+               DB    &1D       ; LD RP,(NN)
+               DW    GP1D7
+               DB    &47       ; LD (HL)/(IX)/(IY),R
+               DW    GP1D8
+               DB    &27       ; LD I/R,A
+               DW    GP1D9
+               DB    &B9       ; LD (IX+D)/(IY+D),N
+               DW    GP1D5
+               DB    &B7       ; LD (IX+D)/(IY+D),R
+               DW    GP1D8
+               DB    &D7       ; LD (NN),A
+               DW    GP1DA
+               DB    &D1       ; LD (NN),RP
+               DW    GP1DB
+               DB    &74       ; LD (HL)/(IX)/(IY)
+               DW    GP1DC
+               DB    &7B       ; LD R,(IX+D)/(IY+D)
+               DW    GP1DC
+               DB    &79       ; LD R,N
+               DW    GP1DD
+               DB    &77       ; LD R,R
+               DW    GP1DE
+               DB    &11       ; LD SP,HL/IX/IY
+               DW    GP1DF
+               DB    &FF
+;*
+;ENTRY AND EXIT CONDITIONS FOR PORG, PLAB AND
+;ALL GP... SUBROUTINES.
+;
+;ON ENTRY:
+;       B CONTAINS OPERAND-1 TOKEN BYTE
+;  C CONTAINS OPERAND-2 TOKEN BYTE
+;       HL CONTAINS OPERAND-1 INTEGER
+;       DE CONTAINS OPERAND-2 INTEGER
+;ON EXIT:
+;  ASSEMBLED CODE HAS BEEN PLACED IN ASSEMBLED
+;         CODE BUFFER (ASSCOD).
+;       ADDRESS REFERENCE COUNTER HAS BEEN ADJUSTED.
+
+
+
+;PROCESS ORG
+
+PORG:          PUSH  HL      ; SAVE REGS
+               PUSH  BC
+               CALL  ODPBT      ; GET OPERAND PAIR BYTE IN A
+               CP    &90       ; SINGLE INTEGER?
+               JR    NZ,PORG1    ; JUMP OTHERWISE
+               LD    HL,(ODINT1)    ; GET OPERAND-1 INTEGER
+               LD    (ADREFC),HL    ; PUT IN ADDR REG CNTR
+               LD    (ADDISR),HL    ; AND ADDR DISP REG
+               LD    HL,AFLAGS    ; SET ADDR DISCONTINUITY FLAG
+               SET   0,(HL)
+               JR    PORG2
+PORG1:         LD    C,"S"      ; INDICATE SYNTAX ERROR
+               CALL  ERROR
+PORG2:         POP   BC      ; REPLACE REGS
+               POP   HL
+               RET
+;*
+;PROCESS LABEL (INCLUDES EQU AND DEFL)
+;*
+PLAB:          PUSH  HL      ; SAVE REGS
+               PUSH  DE
+               PUSH  BC
+               LD    A,(ORTKBF)    ; GET OPR TOKEN
+               PUSH  AF      ; SAVE ON STACK
+               CP    DEFLTK      ; IS IT DEFL?
+               JR    Z,PLAB1
+               CP    EQUTOK      ; OR EQU?
+               JR    NZ,PLAB2
+PLAB1:         LD    (ADDISR),HL    ; DISPLAY VALUE IF SO
+               CALL  ODPBT      ; GET OPD PAIR BYTE
+               CP    &90       ; SINGLE INTEGER?
+               JR    Z,PLAB3      ; JUMP IF SO, OK
+               LD    C,"S"      ; ELSE INDICATE SYNTAX ERROR
+               CALL  ERROR
+               JR    PLAB3
+PLAB2:         LD    HL,(ADREFC)    ; GET CURRENT ADDR (LABEL VALUE)
+PLAB3:         LD    B,H      ; COPY LABEL VALUE INTO BC
+               LD    C,L
+               CALL  LBSYM      ; PUT LABEL AND VALUE IN SYMBUF
+               JR    Z,PLAB13    ; JUMP IF NO LABEL PRESENT
+               JR    PLAB5    ; JUMP IF NOT
+
+PLAB13:        POP   AF      ; GET OPR TOKEN
+               PUSH  AF
+               CP    DEFLTK      ; IS IT DEFL?
+               JR    Z,PLAB4
+               CP    EQUTOK      ; OR EQU?
+               JR    NZ,PLAB12
+PLAB4:         LD    C,"S"      ; INDICATE SYNTAX ERROR IF SO
+               CALL  ERROR
+               JR    PLAB12
+
+PLAB5:         POP   AF      ; GET OPR TOKEN
+               PUSH  AF
+               CP    DEFLTK      ; IS IT DEFL?
+               JR    NZ,PLAB6    ; JUMP IF NOT
+               SET   0,(HL)      ; SET DEFL FLAG IN ATTRIB
+PLAB6:         CALL  LOCATE      ; LOCATE IN SYMBOL TABLE
+               JR    Z,PLAB8      ; JUMP IF ALREADY IN TABLE
+               LD    A,(PASSNO)    ; IS THIS PASS 1?
+               CP    1
+               JR    Z,PLAB7      ; JUMP IF SO
+               LD    C,"P"      ; OTHERWISE INDICATE PHASE ERROR
+               CALL  ERROR
+               JR    PLAB12
+PLAB7:         CALL  INSERT      ; INSERT IN SYMBOL TABLE
+               JR    PLAB12
+          ; ALREADY IN TABLE
+PLAB8:         LD    A,(PASSNO)    ; IS THIS PASS 1?
+               CP    1
+               JR    Z,PLAB11    ; JUMP IF SO
+               INC   HL      ; MULT DEFN FLAG SET?
+               INC   HL
+               BIT   1,(HL)
+               JR    Z,PLAB9      ; JUMP IF NOT
+               LD    C,"M"      ; INDICATE MULT DEFN ERROR
+               CALL  ERROR
+               JR    PLAB12
+PLAB9:         POP   AF      ; GET OPR TOKEN
+               PUSH  AF
+               CP    DEFLTK      ; IS IT DEFL?
+               JR    NZ,PLAB10    ; JUMP IF NOT
+               DEC   HL      ; INSERT NEW VALUE
+               LD    (HL),B
+               DEC   HL
+               LD    (HL),C
+               JR    PLAB12
+PLAB10:          ; HAS VALUE CHANGED?
+               DEC   HL      ; GET OLD VALUE IN DE
+               LD    D,(HL)
+               DEC   HL
+               LD    E,(HL)
+               EX    DE,HL      ; GET IT INTO HL
+               AND   A      ; CLEAR CARRY
+               SBC   HL,BC      ; AND COMPARE OLD AND NEW VALUES
+               JR    Z,PLAB12    ; JUMP IF EQUAL
+               EX    DE,HL      ; ELSE INSERT NEW VALUE
+               LD    (HL),C
+               INC   HL
+               LD    (HL),B
+               LD    C,"P"      ; AND INDICATE PHASE ERROR
+               CALL  ERROR
+               JR    PLAB12
+PLAB11:        INC   HL      ; POINT TO ATTRIBUTE BYTE
+               INC   HL
+               POP   AF      ; GET OPR TOKEN
+               PUSH  AF
+               CP    DEFLTK      ; IS IT DEFL?
+               JR    NZ,PLAB14    ; JUMP IF NOT
+               BIT   0,(HL)      ; TEST DEFL FLAG
+               JR    NZ,PLAB12    ; JUMP IF SET
+PLAB14:        SET   1,(HL)      ; SET MULT DEFN FLAG
+PLAB12:        POP   AF      ; REPLACE REGS
+               POP   BC
+               POP   DE
+               POP   HL
+               RET
+;*
+;PROCESS DUMP (GROUP 04)
+;*
+GP04:          LD    DE,16384
+               XOR   A
+UZ1:           SBC   HL,DE
+               JR    C,UZ
+               INC   A
+               JR    UZ1
+UZ:            ADD   HL,DE
+               RES   7,H
+               RES   6,H
+               EX    DE,HL
+               LD    H,0
+               LD    L,A
+               DEC   L
+               LD    C,"V"
+               JP    M,ERROR  ; MENEJ 16384
+
+; HL = PAGE
+; DE = OFFSET
+GP04A:         LD    A,L
+               AND   31
+               LD    (DSTPTR),A
+               RES   7,D
+               RES   6,D
+               LD    (DSTPTR+1),DE
+               LD    HL,(DUMPF)
+               INC   L
+               DEC   L
+               RET   NZ
+               LD    (CODESTART),A
+               LD    (CODESTART+1),DE
+               INC   A
+               LD    (DUMPF),A
+               RET
+
+PDEF:          CALL  VYRAZ
+               JP    Z,SYNERR
+               LD    A,(ORTKBF)
+               CP    DEFBTK
+               JR    NZ,PDEF1
+               CALL  CHKOF
+               LD    A,L
+               CALL  APPBT
+               JR    PDEF2
+PDEF1:         CALL  APPWD
+PDEF2:         LD    HL,(LINPNT)
+               LD    A,(HL)
+               CP    CR
+               RET   Z
+               CP    ","
+               JP    NZ,SYNERR
+               INC   HL
+               LD    (LINPNT),HL
+               JR    PDEF
+;*
+;HL= VALUE, NZ IF OK,
+;*
+VYRAZX:        LD    (LINPNT),HL
+VYRAZ:         LD    HL,(LINPNT)
+               LD    A,(HL)
+               CP    CR
+               RET   Z
+               PUSH  IX
+               PUSH  IY
+VYRAZ1:        LD    A,(HL)
+               CP    34
+               JR    NZ,VYRAZ2
+               INC   HL
+VYRAZ3:        LD    A,(HL)
+               INC   HL
+               CALL  DOUBQ
+               JR    Z,VYRAZ3
+VYRAZ2:        LD    A,(HL)
+               INC   HL
+               CP    CR
+               JR    Z,VYR4
+               CP    ","
+               JR    NZ,VYRAZ1
+VYR4:          DEC   HL
+               PUSH  HL
+               LD    IX,(LINPNT)
+               LD    (LINPNT),HL
+               POP   IY
+               CALL  EVAL
+               POP   IY
+               POP   IX
+               RET
+;*
+;PROCESS DEFS (GROUP 07)
+;*
+GP07:          LD    DE,(ADREFC)    ; ADD INTEGER TO ADDR REF CNTR
+               EX    DE,HL
+               ADD   HL,DE
+               LD    (ADREFC),HL    ; POSLI HL NOPS
+               LD    A,(PASSNO)
+               CP    1
+               JR    Z,GP73
+               EX    DE,HL
+
+GP72:          LD    DE,64
+               AND   A
+               SBC   HL,DE
+               JR    C,GP071
+               LD    A,E
+               LD    (ASCDNO),A
+               PUSH  HL
+               CALL  OBJO
+               POP   HL
+               JR    GP72
+
+GP071:         ADD   HL,DE
+               LD    A,L
+               LD    (ASCDNO),A
+               CALL  OBJO
+GP73:          LD    HL,AFLAGS    ; SET ADDR DISCONT. FLAG
+               SET   0,(HL)
+               XOR   A
+               LD    (ASCDNO),A
+               RET
+;*
+;PROCESS NO OPERAND.
+;*
+GP0B:          LD    A,(ORTKBF)    ; GET OPR GROUP
+               CP    &0A       ; IS IT GROUP 0A?
+               JR    Z,GP0B1      ; SKIP PREFIX BYTE IF SO
+               LD    A,&ED       ; LOAD PREFIX BYTE TO ASSD CODE
+               CALL  APPBT      ; APPEND TO ASSD CODE BUFFER
+GP0B1:         LD    A,(ORTKBF+1)    ; GET OPCODE IN A
+               CALL  APPBT      ; AND APPEND TO ASSD CODE BUFF
+               RET
+;*
+;PROCESS AND/OR/XOR/CP/SUB (GROUP 0C)
+;*
+;GROUP 0C - R
+;*
+GP0C1:         LD    A,(ORTKBF+1)    ; GET OPR DISTING BITS
+               LD    C,B      ; COMBINE REG BITS
+               CALL  ISREG
+               OR    %10000000     ; BUILD OP-CODE
+               CALL  APPBT      ; APPEND RESULT TO ASSD CODE BUFFER
+               RET
+;*
+;GROUP 0C - N
+;*
+GP0C2:         LD    A,(ORTKBF+1)    ; GET OPR DISTING BITS
+               OR    %11000110     ; BUILD OP-CODE
+               CALL  APPBT      ; APPEND IT TO ASSD CODE BUFF
+               CALL  CHKOF      ; INDICATE OVERFLOW ERROR IF ANY
+               LD    A,L      ; PUT INTEGER IN ASSD CODE BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 0C - (HL)/(IX+D)/(IY+D)
+;*
+GP0C3:         CALL  INDPF      ; GENERATE INDEX PREFIX, IF REQD
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING BITS
+               OR    %10000110     ; BUILD OP-CODE
+               CALL  APPBT       ; APPEND TO ASSD CODE BUFF
+               CALL  DISBT      ; APPEND DISP. IF REQD
+               RET
+;*
+;PROCESS INC/DEC (GROUP 0D)
+;*
+;GROUP 0D - R
+;*
+GP0D1:         LD    C,B
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING. BIT
+               AND   %00000001
+               OR    %00000100     ; BUILD OP-CODE
+               CALL  IDREG      ; INSERT REGISTER BITS
+               CALL  APPBT      ; APPEND OPCODE TO BUFFER
+               RET
+;*
+;GROUP 0D - (HL)/(IX+D)/(IY+D)
+;*
+GP0D2:         CALL  INDPF      ; GENERATE INDEX PREFIX IF REGD
+               LD    A,(ORTKBF+1)    ; GET OPERATOR DISTING. BIT
+               AND   %00000001
+               OR    %00110100     ; GENERATE OP-CODE
+               CALL  APPBT      ; APPEND TO BUFFER
+               CALL  DISBT      ; APPEND DISP. IF REQD
+               RET
+;*
+;GROUP 0D - IX/IY/BC/DE/HL/SP
+;*
+GP0D3:         LD    A,B      ; GET OPERAND BYTE-1
+               CP    &17       ; CHECK IF AF REFERENCE
+               JP    Z,SYNERR    ; JUMP IF IT IS, ERROR
+               CALL  INDPF      ; GENERATE INDEX PREFIX IF REQD
+               LD    C,B      ; PUT OPERAND BYTE IN C
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING. BIT
+               AND   %00001000
+               OR    %00000011     ; BUILD OP-CODE
+               CALL  IREGP      ; INSERT REGISTER PAIR BITS
+               CALL  APPBT      ; APPEND THIS OPCODE TO BUFFER
+               RET
+;*
+;PROCESS IM (GROUP 0E)
+;*
+GP0E:          LD    A,H      ; GET HIGH BYTE
+               AND   A      ; CHECK IT IS 0
+               JP    NZ,SYNERR    ; ERROR IF NOT, SO JUMP
+               LD    A,L      ; GET LOW BYTE
+               CP    3      ; IS IT 0,1 OR 2?
+               JP    NC,SYNERR    ; JUMP IF NOT, ERROR
+               AND   A      ; IS IT ZERO?
+               JR    Z,GP0E1      ; JUMP IF SO
+               INC   A      ; OTHERWISE INCREMENT
+GP0E1:         LD    C,A      ; PUT IT IN C
+               LD    A,&ED       ; APPEND PREFIX BYTE
+               CALL  APPBT      ; TO ASSD CODE BUFFER
+               LD    A,%01000110; GENERATE OP-CODE
+               CALL  IDREG      ; INSERT PARAMETER BITS
+               CALL  APPBT      ; APPEND TO ASSD CODE BUFF
+               RET
+;*
+;PROCESS RLC/RL/SLA/RRC/RR/SRA/SRL (GROUP 0F)
+;*
+;GROUP 0F - R
+;*
+GP0F1:         LD    A,&CB       ; APPEND PREFIX BYTE
+               CALL  APPBT      ; TO ASSD CODE BUFF
+               LD    C,B      ; PUT OPD BYTE 1 IN C
+               LD    A,(ORTKBF+1)    ; GET OPD DISTING. BITS
+               CALL  ISREG      ; INSERT REGISTER BITS
+               CALL  APPBT
+               RET
+;*
+;GROUP OF - (HL)/(IX+D)/(IY+D)
+;*
+GP0F2:         CALL  INDPF      ; APPEND INDEX PREFIX BYTE IF REQD
+               LD    A,&CB
+               CALL  APPBT      ; APPEND PREFIX BYTE
+               CALL  DISBT      ; APPEND DISPLACEMENT BYTE IF REQD
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING. BITS
+               OR    %00000110  ; BUILD OP-CODE
+               CALL  APPBT      ; APPEND TO ASSD CODE BUFF
+               RET
+;*
+;PROCESS BIT/SET/RES (GROUP 10)
+;*
+;GROUP 10 - B,R
+;*
+GP101:          ; OPD INTEGER
+          ; MUST BE IN RANGE 0-7
+               LD    A,L      ; SEE IF ANY BITS OTHER THAN
+               AND   %11111000     ; 3 L.S. BITS ARE 1
+               OR    H
+               JP    NZ,SYNERR    ; JUMP IF SO, ERROR
+               LD    A,&CB       ; APPEND PREFIX BYTE TO BUFFER
+               CALL  APPBT
+               LD    A,(ORTKBF+1)    ; GET OPD DISTING. BITS
+               CALL  ISREG      ; COMBINE REGISTER BITS
+               LD    C,L      ; GET INTEGER IN C
+               CALL  IDREG      ; COMBINE INTEGER BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               RET
+;*
+;GROUP 10 - B,(HL)/(IX+D)/(IY+D)
+;*
+GP102:          ; OPD INTEGER
+          ; MUST BE IN RANGE 0-7
+               LD    A,L      ; SEE IF ANY BITS OTHER THAN
+               AND   %11111000     ; 3 L.S. BITS ARE 1
+               OR    H
+               JP    NZ,SYNERR    ; JUMP IF SO, ERROR
+               LD    B,C
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&CB       ; APPEND OP-CODE PREFIX
+               CALL  APPBT
+               LD    C,L      ; GET INTEGER IN C
+               EX    DE,HL      ; GET DISPLACEMENT INTEGER
+               CALL  DISBT      ; APPEND IF REQD
+               LD    A,(ORTKBF+1)    ; GET OPD DISTING. BITS
+               OR    %00000110     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE INTEGER BITS
+               CALL  APPBT
+               RET
+;*
+;PROCESS JP (GROUP 11)
+;*
+;*
+;GROUP 11 - (HL)/(IX)/(IY)
+;*
+GP111:         CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&E9       ; APPEND OP-CODE PREFIX TO BUFFE
+               CALL  APPBT
+               RET
+;*
+;GROUP 11 - CC,NN
+;*
+GP112:         LD    C,B      ; GET OPD BYTE 1 IN C
+               LD    A,%11000010     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE CONDITION BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               EX    DE,HL      ; GET INTEGER
+               CALL  APPWD      ; APPEND LOW BYTE
+               RET
+;*
+;GROUP 11 - NN
+;*
+GP113:         LD    A,&C3       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;PROCESS JR (GROUP 12)
+;*
+;*
+;GROUP 12 CC,E
+;*
+GP121:         BIT   2,B      ; CHECK IF PO/PE/P/M
+               JP    NZ,SYNERR    ; JUMP IF SO, ERROR
+               LD    C,B      ; PUT OPR BYTE 1 IN C
+               EX    DE,HL      ; GET OPD INTEGER 2
+               CALL  CDIS      ; CALCULATE DISPLACEMENT
+               NOP        ; ROOM FOR SPARE INSTRUCTION
+               NOP
+               NOP
+               LD    A,%00100000; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE CONDITION BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               LD    A,L      ; GET DISPLACEMENT
+               CALL  APPBT      ; APPEND TO BUFFER
+               RET
+;*
+;GROUP 12 - E
+;*
+GP122:         CALL  CDIS      ; CALCULATE DISPLACEMENT
+               NOP        ; ROOM FOR SPARE INSTRUCTION
+               NOP
+               NOP
+               LD    A,&18      ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               LD    A,L      ; APPEND DISP TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;PROCESS DJNZ (GROUP 13)
+;*
+GP13:          CALL  CDIS      ; CALCULATE DISPLACEMENT
+               NOP            ; ROOM FOR SPARE INSTRUCTION
+               NOP
+               NOP
+               LD    A,&10      ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               LD    A,L      ; APPEND DISP TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;CALCULATE DISPLACEMENT
+;*
+CDIS:          PUSH  DE      ; SAVE REGS
+               PUSH  BC
+               LD    DE,(ADREFC)    ; GET ADDR REF CNTR
+               INC   DE      ; ADD 2 (ALLOW FOR INCRD PC)
+               INC   DE
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; GET DISPLACEMENT FROM CURR LOC.
+               LD    A,L      ; CHECK FOR 8 BIT OVERFLOW
+               AND   %10000000
+               OR    H
+               JR    Z,CDIS2      ; JUMP IF NO OVERFLOW
+               LD    A,L      ; CHECK -VE OVERFLOW
+               OR    %01111111
+               AND   H
+               CPL
+               AND   A
+               JR    Z,CDIS2      ; JUMP IF NO OVERFLOW
+CDIS1:         LD    C,"R"      ; INDICATE RANGE ERROR
+               LD    A,(PASSNO)
+               CP    1
+               CALL  NZ,ERROR
+               XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+CDIS2:         POP   BC      ; REPLACE REGS
+               POP   DE
+               RET
+;*
+;PROCESS CALL (GROUP 14)
+;*
+;*
+;GROUP 14 - CC,NN
+;*
+GP141:         LD    C,B        ; GET OPD BYTE 1 IN C
+               LD    A,%11000100; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE CONDITION BIT
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               EX    DE,HL      ; GET INTEGER
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;GROUP 14 - NN
+;*
+GP142:         LD    A,&CD       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;PROCESS RET (GROUP 15)
+;*
+;*
+;GROUP 15 - NO OPERAND
+;*
+GP151:         LD    A,&C9       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 15 - CC
+;*
+GP152:         LD    C,B        ; GET OPD BYTE 1 IN C
+               LD    A,%11000000; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE CONDITION BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               RET
+;*
+;PROCESS RST (GROUP 16)
+;*
+GP16:          ; INTEGER MAY ONLY BE 0/08H/
+          ; 10H/18H/20H/28H/30H/38H
+               LD    A,L      ; CHECK FOR INVALID VALUE
+               AND   %11000111
+               OR    H
+               JP    NZ,SYNERR    ; JUMP IF INVALID
+               LD    A,L      ; BUILD OP-CODE
+               OR    %11000111
+               CALL  APPBT      ; APPEND TO BUFFER
+               RET
+;*
+;PROCESS IN (GROUP 17)
+;*
+;*
+;GROUP 17 - A,(N)
+;*
+GP171:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77      ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,D      ; INTEGER MUST BE < 256
+               AND   A
+               NOP        ; ROOM FOR SPARE INSTRUCTION
+               NOP
+               NOP
+               LD    A,&DB       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               LD    A,E      ; APPEND INTEGER TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 17 - R,(C)
+;*
+GP172:         LD    A,&ED       ; APPEND OP-CODE PREFIX TO BUFFE
+               CALL  APPBT
+               LD    C,B      ; GET OPD BYTE 1 IN C
+               LD    A,%01000000     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE REG BITS
+               CALL  APPBT
+               RET
+;*
+;PROCESS OUT (GROUP 18)
+;*
+;*
+;GROUP 18 - (C),R
+;*
+GP181:         LD    A,&ED       ; APPEND OP-CODE PREFIX TO BUFFE
+               CALL  APPBT
+               LD    A,%01000001; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE REG BITS
+               CALL  APPBT      ; APPEND TO BUFFER
+               RET
+;*
+;GROUP 18 - (N),A
+;*
+GP182:         LD    A,C      ; GET OPD BYTE 2
+               CP    &77      ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT
+               LD    A,H      ; MUST BE < 256
+               AND   A
+               NOP        ; ROOM FOR SPARE INSTRUCTION
+               NOP
+               NOP
+               LD    A,&D3       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               LD    A,L      ; APPEND INTEGER TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;PROCESS PUSH/POP (GROUP 19)
+;*
+GP19:          LD    A,(ODBT1)    ; GET OPD BYTE 1
+               CP    &13      ; SP NOT PERMITTED
+               JP    Z,SYNERR
+               LD    C,B      ; GET OPD BYTE 1 IN C
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,(ORTKBF+1)    ; GET APR DISTING. BITS
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               CALL  APPBT      ; APPEND TO BUFFER
+               RET
+;*
+;PROCESS EX (GROUP 1A)
+;*
+;*
+;GROUP 1A - (SP),HL/IX/IY
+;*
+GP1A1:         LD    B,C      ; GET OPR BYTE 2 IN C
+               LD    A,C
+               AND   3      ; MUST BE HL/IX/IY
+               CP    2
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&E3       ; APPEND AP-CODE TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 1A - AF,AF"
+;*
+GP1A2:         LD    A,B      ; GET OPD BYTE 1
+               CP    &17      ; MUST BE AF
+               JP    NZ,GP1A3 ; JUMP IF NOT, ERROR
+               LD    A,8      ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 1A - DE,HL
+;*
+GP1A3:         LD    A,B      ; GET SPD BYTE 1
+               CP    &11       ; MUST BE DE
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,C      ; GET OPD BYTE 2
+               CP    &12       ; MUST BE HL
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,&EB       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;PROCESS ADC/SBC (GROUP 1B)
+;*
+;GROUP 1B - A,R
+;*
+GP1B1A:        CALL  ODPBT
+               CP    &70
+               JR    NZ,GP1B1
+               LD    C,B
+               LD    B,&77
+GP1B1:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,(ORTKBF+1)    ; GET OPD DISTING BITS
+               AND   %00010000     ; AND MASK IT
+               OR    %10001000     ; BUILD OP-CODE
+               CALL  ISREG      ; COMBINE REGISTER BITS
+               CALL  APPBT      ; APPEND BYTE TO BUFFER
+               RET
+;*
+;GROUP 1B - A,N
+;*
+GP1B2A:        CALL  ODPBT
+               CP    &90
+               JR    NZ,GP1B2
+               LD    C,B
+               LD    B,&77
+               LD    E,L
+GP1B2:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING BITS
+               AND   %00010000     ; AND MASK IT
+               OR    %11001110     ; BUILD OP-CODE
+               CALL  APPBT      ; APPEND TO BUFFER
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  CHKOF      ; FLAG OVERFLOW FROM L IF ANY
+               LD    A,L      ; APPEND INTEGER TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 1B A,(HL)/(IX+D)/(IY+D)
+;*
+GP1B3A:        CALL  ODPBT
+               CP    &40
+               JR    Z,NLB2
+               CP    &B0
+               JR    NZ,GP1B3
+NLB2:          LD    C,B
+               LD    B,&77
+               LD    E,L
+               LD    D,H
+
+GP1B3:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    B,C      ; PUT OPD BYTE 2 IN B
+               CALL  INDPF      ; APPEND INDEX PREFIX IF ANY
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING BIT
+               AND   %00010000     ; AND MASK IT
+               OR    %10001110     ; BUILD OP-CODE
+               CALL  APPBT      ; APPEND IT TO BUFFER
+               EX    DE,HL      ; GET DISP. INTEGER
+               CALL  DISBT      ; APPEND DISPLACEMENT INTEGER IF REQD
+               RET
+;*
+;GROUP 1B - HL,BC/DE/HL/SP
+;*
+GP1B4:         LD    A,B      ; GET OPD BYTE 1
+               CP    &12       ; MUST BE HL
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,C      ; GET OPD BYTE 2
+               CP    &14       ; MUST BE BC/DE/HL/SP
+               JP    NC,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,&ED       ; APPEND PREFIX BYTE TO BUFFER
+               CALL  APPBT
+               LD    A,(ORTKBF+1)    ; GET OPR DISTING BIT
+               AND   %00001000     ; MASK IT
+               OR    %01000010     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               CALL  APPBT      ; APPEND IT TO BUFFER
+               RET
+;*
+;PROCESS ADD (GROUP 1C)
+;*
+;*
+;GROUP 1C - A,R
+;*
+GP1C1A:        CALL  ODPBT
+               CP    &70
+               JR    NZ,GP1C1
+               LD    C,B
+               LD    B,&77
+GP1C1:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,%10000000     ; BUILD OP-CODE
+               CALL  ISREG      ; COMBINE REG BITS
+               CALL  APPBT      ; APPEND TO BUFFER
+               RET
+;*
+;GROUP 1C - A,N
+;*
+GP1C2A:        CALL  ODPBT
+               CP    &90
+               JR    NZ,GP1C2
+               LD    C,B
+               LD    B,&77
+               LD    E,L
+GP1C2:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,&C6       ; APPEND OP-CODE
+               CALL  APPBT
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  CHKOF      ; FLAG ANY OVERFLOW FROM L
+               LD    A,L      ; APPEND INTEGER TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 1C - A,(HL)/(IX+D)/(IY+D)
+;*
+GP1C3A:        CALL  ODPBT
+               CP    &40
+               JR    Z,NLA2
+               CP    &B0
+               JR    NZ,GP1C3
+NLA2:          LD    C,B
+               LD    B,&77
+               LD    E,L
+               LD    D,H
+
+GP1C3:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR
+               LD    B,C      ; PUT OPD BYTE 2 IN B
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&86       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               EX    DE,HL      ; GET DISP INTEGER IN HL
+               CALL  DISBT      ; APPEND IT IF REQD
+               RET
+;*
+;GROUP 1C - HL/IX/IY,RP
+;*
+GP1C4:         LD    A,B      ; GET OPD BYTE 1
+               AND   %11       ; MUST BE HL/IX/IY
+               CP    %10
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,C      ; GET OPD BYTE 2
+               AND   %11       ; IS IT BC/DE/SP
+               CP    %10
+               JR    NZ,GP1C41    ; JUMP IF SO
+               LD    A,C      ; IS IT SAME AS OPD 1?
+               CP    B
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+GP1C41:        CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,%00001001     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               CALL  APPBT
+               RET
+;*
+;PROCESS LD (GROUP 1D)
+;*
+;*
+;GROUP 1D - A,(BC)/(DE)
+;*
+GP1D1:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,%00001010     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               RET
+;*
+;GROUP 1D - A,I/R
+;*
+GP1D2:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,&ED       ; APPEND PREFIX BYTE TO BUFFER
+               CALL  APPBT
+               LD    A,%01010111     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE REG BIT
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               RET
+;*
+;GROUP 1D - A,(NN)
+;*
+GP1D3:         LD    A,B      ; GET OPD BYTE 1
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               EX    DE,HL      ; GET INTEGER IN HL
+               LD    A,&3A      ; APPEND OP-CODE TO BEFFER
+               CALL  APPBT
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;GROUP 1D - (BC)/(DE),A
+;*
+GP1D4:         LD    A,C      ; GET OPD BYTE 2
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    C,B      ; PUT OPD BYTE 1 IN C
+               LD    A,%00000010     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               RET
+;*
+;GROUP 1D - (HL)/(IX+D)/(IY+D),N
+;*
+GP1D5:         CALL  INDPF      ; APPEND INDEX PREFIX TO BUFFER
+               LD    A,&36
+               CALL  APPBT      ; APPEND OP-CODE
+               CALL  DISBT      ; APPEND DISP BYTE IF REQD
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  CHKOF      ; FLAG OVERFLOW FROM L
+               LD    A,L      ; APPEND INTEGER TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 1D - BC/DE/HL/SP/IX/IY,NN
+;*
+GP1D6:         LD    A,B      ; GET OPD BYTE 1
+               CP    &17       ; MUST NOT BE AF REG PAIR
+               JP    Z,SYNERR    ; JUMP IF IT IS, ERROR
+               LD    C,B      ; GET OPD BYTE 1 IN C
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,%00000001     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               CALL  APPBT      ; APPEND OP-CODE
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;GROUP 1D - BC/DE/HL/SP/IX/IY,(NN)
+;*
+GP1D7:         LD    A,B      ; GET OPD BYTE 1
+               LD    C,B      ; PUT IN C
+               CP    &17       ; MUST NOT BE AF
+               JP    Z,SYNERR    ; JUMP IF IT IS, ERROR
+               AND   %11       ; TEST FOR HL/IX/IY
+               CP    %10       ; TREAT HL/IX/IY SEPARATELY
+               JR    Z,GP1D71    ; JUMP IF HL/IX/IY
+               LD    A,&ED       ; APPEND PREFIX BYTE
+               CALL  APPBT
+               LD    A,%01001011     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               JR    GP1D72
+GP1D71:        CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&2A       ; APPEND OP-CODE TO BUFFER
+GP1D72:        CALL  APPBT
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;GROUP 1D - (HL)/(IX+D)/(IY+D),R
+;*
+GP1D8:         CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,%01110000     ; BUILD OP-CODE
+               CALL  ISREG      ; COMBINE REG BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               CALL  DISBT      ; APPEND TO BUFFER IF REQD
+               RET
+;*
+;GROUP 1D - I/R,A
+;*
+GP1D9:         LD    A,C      ; GET OPD BYTE 2
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    C,B      ; PUT OPD BYTE 1 IN C
+               LD    A,&ED       ; APPEND PREFIX BYTE
+               CALL  APPBT
+               LD    A,%01000111     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE REG BIT
+               CALL  APPBT      ; APPEND OP-CODE
+               RET
+;*
+;GROUP 1D - (NN),A
+;*
+GP1DA:         LD    A,C      ; GET OPD BYTE 2
+               CP    &77       ; MUST BE "A" REG
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,&32       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;GROUP 1D = (NN),BC/DE/HL/SP/IX/IY
+;*
+GP1DB:         LD    A,C      ; GET OPD BYTE 2
+               LD    B,C      ; PUT IN B
+               CP    &17       ; MUST NOT BE AF
+               JP    Z,SYNERR    ; JUMP IF IT IS, ERROR
+               AND   %11       ; TEST FOR HL/IX/IY
+               CP    %10
+               JR    Z,GP1DB1    ; JUMP TO TREAT HL/IX/IY SEPARATELY
+               LD    A,&ED       ; APPEND PREFIX BYTE
+               CALL  APPBT
+               LD    A,%01000011     ; BUILD OP-CODE
+               CALL  IREGP      ; COMBINE REG PAIR BITS
+               JR    GP1DB2
+GP1DB1:        CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&22      ; PUT OP-CODE IN A
+GP1DB2:        CALL  APPBT      ; APPEND OP-CODE
+               CALL  APPWD      ; APPEND INTEGER
+               RET
+;*
+;GROUP 1D - R,(HL)/(IX+D)/(IY+D)
+;*
+GP1DC:         LD    A,B      ; SWAP B AND C
+               LD    B,C
+               LD    C,A
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,%01000110     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE REG BITS
+               CALL  APPBT      ; APPEND OP-CODE
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  DISBT      ; APPEND DISP BYTE IF REQD
+               RET
+;*
+;GROUP 1D - R,N
+;*
+GP1DD:         LD    C,B      ; PUT OPD BYTE 1 IN C
+               LD    A,%00000110     ; BUILD OP-CODE
+               CALL  IDREG      ; COMBINE REG BITS
+               CALL  APPBT      ; APPEND OP-CODE TO BUFFER
+               EX    DE,HL      ; GET INTEGER IN HL
+               CALL  CHKOF      ; FLAG OVERFLOW FROM L
+               LD    A,L      ; APPEND INTEGER TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GROUP 1D - R,R
+;*
+GP1DE:         LD    A,%01000000     ; BUILD OP-CODE
+               CALL  ISREG      ; COMBINE SOURCE REG BITS
+               LD    C,B
+               CALL  IDREG      ; COMBINE DEST REG BITS
+               CALL  APPBT      ; APPEND OP-CODE
+               RET
+;*
+;GROUP 1D - SP,HL/IX/IY
+;*
+GP1DF:         LD    A,B      ; GET OPD BYTE 1
+               CP    &13       ; MUST BE SP
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               LD    A,C      ; GET OPD BYTE 2
+               LD    B,C      ; PUT IN B
+               AND   %11       ; MUST BE HL/IX/IY
+               CP    %10
+               JP    NZ,SYNERR    ; JUMP IF NOT, ERROR
+               CALL  INDPF      ; APPEND INDEX PREFIX IF REQD
+               LD    A,&F9       ; APPEND OP-CODE TO BUFFER
+               CALL  APPBT
+               RET
+;*
+;GET OPERAND PAIR BYTE
+;THE M.S. NIBBLE OF AN OPERAND TOKEN BYTE
+;SIGNIFIES THE OPERAND GROUP (0-E). THIS
+;SUBROUTINE BUILDS A BYTE WHOSE M.S. NIBBLE
+;IS THE GROUP OF OPERAND 1 AND WHOSE L.S.
+;NIBBLE IS THE GROUP OF OPERAND 2.
+;THIS COMPOSITE BYTE IS CALLED THE OPERAND
+;PAIR BYTE AND IS USED TO DETERMINE WHICH
+;PROCESSING SUBROUTINE (GP...) TO USE TO
+;GENERATE THE ASSEMBLED CODE.
+;
+;ON EXIT:
+;       A CONTAINS THE OPERAND BYTE PAIR
+;*
+ODPBT:         PUSH  BC      ; SAVE BC
+               LD    A,(ODBT1)    ; GET 1ST OPERAND BYTE
+               AND   &F0       ; MASK OPERAND GROUP NIBBLE
+               LD    B,A      ; SAVE IN B
+               LD    A,(ODBT2)    ; GET 2ND OPERAND BYTE
+               AND   &F0       ; MASK OPERAND GROUP NIBBLE
+               RRCA        ; SHIFT INTO LOWER 4 BITS
+               RRCA
+               RRCA
+               RRCA
+               OR    B      ; CONSTRUCT COMPOSITE OPERAND
+          ; GROUP BYTE IN A
+               POP   BC      ; REPLACE BC
+               RET
+;*
+;GENERATE INDEX REGISTER PREFIX BYTE
+;ON ENTRY:
+;       B CONTAINS OPERAND TOKEN
+;PREFIX IS APPENDED TO ASSD CODE BUFFER IF
+;OPERAND IS IX OR IY.
+;*
+INDPF:         BIT   3,B      ; IS OPERAND IX OR IY?
+               RET   Z      ; NO PREFIX IF NOT, RETURN
+               LD    A,&DD       ; PUT PREFIX BYTE FOR IX IN A
+               BIT   2,B      ; IS OPERAND IY?
+               JR    Z,INDPF1    ; JUMP IF NOT
+               LD    A,&FD       ; PUT PREFIX BYTE FOR IY IN A
+INDPF1:        CALL  APPBT      ; APPEND BYTE TO ASSD CODE BUFFER
+               RET
+;*
+;GENERATE DISPLACEMENT BYTE
+;USE NO. IN HL FOR DISPLACEMENT
+;B CONTAINS OPERAND BYTE
+;*
+DISBT:         BIT   3,B      ; IS OPERAND IX OR IY?
+               RET   Z      ; IF NOT, NO DISP. BYTE REQD
+               CALL  CHKOF      ; CHECK NO. IN HL FOR 8 BIT OVERFLOW
+               LD    A,L      ; GET L.S. BYTE IN ACC.
+               CALL  APPBT      ; AND APPEND TO ASSD CODE BUFFER
+               RET
+;*
+;CHECK OVERFLOW FROM L
+;VALUE ERROR INDICATED IF SO
+;*
+CHKOF:         PUSH  BC      ; SAVE BC
+               LD    A,H      ; GET REG CONTAINING POSSIBLE OVERFLOW
+               AND   A      ; IS IT ZERO?
+               JR    Z,CHKOF1    ; IF SO, NO OVERFLOW
+               INC   A      ; WAS IT -1? (FF)
+               JR    Z,CHKOF1    ; IF SO, NO OVERFLOW
+               LD    C,"V"      ; OTHERWISE INDICATE "VALUE" ERROR
+               CALL  ERROR
+CHKOF1:        POP   BC      ; REPLACE BC
+               RET
+;*
+;INSERT SOURCE REG
+;ON ENTRY:
+;       C CONTAINS OPERAND BYTE
+;       A CONTAINS CODE BYTE BEING BUILT
+;ON EXIT:
+;       A HAS HAD THE REGISTER VALUE INSERTED
+;       TO BITD 0,1 & 2
+;*
+ISREG:         PUSH  BC      ; SAVE REG
+               LD    B,A      ; SAVE CODE BEING BUILT IN B
+               LD    A,C      ; GET OPERAND BYTE FROM C
+               AND   %00000111     ; MASK REGISTER VALUE
+               OR    B      ; COMBINE WITH CODE BEING BUILT
+               POP   BC      ; REPLACE REG
+               RET
+;*
+;INSERT DESTINATION REGISTER
+;ON ENTRY:
+;       C CONTAINS OPERAND BYTE
+;       A CONTAINS CODE BYTE BEING BUILT
+;ON EXIT:
+;       A HAS HAD THE REGISTER VALUE INSERTED
+;         TO BITS 3,4 & 5
+;*
+IDREG:         PUSH  BC      ; SAVE BC
+               LD    B,A      ; SAVE CODE BEING BUILT IN B
+               LD    A,C      ; GET OPERAND BYTE FROM C
+               AND   %00000111     ; MASK REGISTER VALUE
+               RLCA        ; SHIFT TO DESTINATION REG POSITION
+               RLCA
+               RLCA
+               OR    B      ; COMBINE WITH CODE BEING BUILT
+               POP   BC      ; REPLACE BC
+               RET
+;*
+;INSERT REGISTER PAIR
+;ON ENTRY:
+;       C CONTAINS OPERAND BYTE
+;       A CONTAINS CODE BYTE BEING BUILT
+;ON EXIT:
+;       A HAS HAD THE REGISTER PAIR VALUE
+;         INSERTED TO BITS 4 & 5.
+;*
+IREGP:         PUSH  BC      ; SAVE BC
+               LD    B,A      ; SAVE CODE BEING BUILT IN B
+               LD    A,C      ; GET OPERAND BYTE FROM C
+               AND   %00000011     ; MASK REGISTER PAIR VALUE
+               RLCA        ; SHIFT TO CORRECT REG PAIR POSITION
+               RLCA
+               RLCA
+               RLCA
+               OR    B      ; COMBINE WITH CODE BEING BUILT
+               POP   BC      ; REPLACE BC
+               RET
+;*
+;APPEND WORD TO ASSEMBLED CODE BUFFER
+;*
+APPWD:         LD    A,L      ; APPEND LOW BYTE
+               CALL  APPBT
+               LD    A,H      ; APPEND HIGH BYTE
+               CALL  APPBT
+               RET
+;*
+;APPEND BYTE TO ASSEMBLED CODE BUFFER
+;*
+APPBT:         PUSH  HL      ; SAVE REGISTERS
+               LD    HL,(MEMPTR)  ; SET POINTER TO ASSD CODE BUFF
+               LD    (HL),A      ; AND PUT IN ASSD CODE BUFF
+               INC   HL
+               LD    (MEMPTR),HL
+               EX    AF,AF'
+               LD    HL,ASCDNO
+               INC   (HL)
+               EX    AF,AF'
+               POP   HL
+               RET
+;*
+;ADJUST ADDRESS REFERENCE COUNTER
+;*
+ADJARC:        PUSH  HL      ; SAVE REGS
+               PUSH  DE
+               LD    HL,(ADREFC)    ; GET ADDR REF CNTR
+               LD    A,(ASCDNO)    ; ADD TO THIS VALUE THE NO.
+               LD    E,A
+               LD    D,0      ; OF BYTES OF ASSD CODE
+               ADD   HL,DE      ; AND PUT BACK INTO
+               LD    (ADREFC),HL    ; ADDR REF CNTR
+               POP   DE      ; REPLACE REGS
+               POP   HL
+               RET
+;*
+;DEFAULT NOP"S
+;*
+DNOPS:         PUSH  BC      ; SAVE BC
+               LD    C,"S"      ; INDICATE SYNTAX ERROR
+               CALL  ERROR
+               LD    A,3      ; RESERVE 4 BYTES NOP"S
+               LD    (ASCDNO),A
+               POP   BC      ; REPLACE BC
+               RET
+;*
+;PERFORM RELEVANT OUTPUT
+;*
+PRFLO:         CALL  OBJO
+               LD    A,(ERRBUF)
+               CP    SPACE
+               RET   Z                ; NEBOLA CHYBA
+               SET   7,A
+               LD    HL,ERRTAB
+               LD    BC,WARNNG1-ERRTAB
+               CPIR                  ; NAJDI HLASENIE
+
+               LD    A,(AFLAGS)
+               BIT   4,A
+               JR    NZ,ABSOLUTE      ; HLAS ERR AK PASS 1
+               BIT   0,A
+               JR    NZ,ABSOLUTE      ; HLAS ERR AK PASS 1
+               LD    A,(PASSNO)       ; V ABSOLUTE ERR
+               CP    2
+               RET   C
+
+ABSOLUTE:      PUSH  HL
+               LD    HL,PT1
+               CALL  CONST
+               POP   HL
+               CALL  CONST
+               CALL  EXPLINE
+DF:            CALL  ASCII
+
+               LD    A,&77
+               LD    BC,&010D
+               LD    DE,&1E02
+               CALL  BOX
+               LD    HL,AFLAGS
+               LD    A,(HL)
+               AND   1
+               RLCA
+               RLCA
+               RLCA
+               RLCA
+               OR    (HL)
+               LD    (HL),A      ; DISC. ERR = FATAL ERR
+               LD    HL,ERRORS
+               INC   (HL)
+               LD    HL,BUFFER
+               RET
+PT1:           DB    22,14,1,-1
+
+OBJO:          LD    A,(ASCDNO)
+               AND   A
+               RET   Z
+               LD    A,(PASSNO)
+               CP    2
+               RET   NZ
+               PUSH  BC
+               PUSH  DE
+               PUSH  HL
+               DI
+               IN    A,(250)
+               EX    AF,AF'
+               LD    A,(DSTPTR)
+               LD    DE,(DSTPTR+1)
+               OR    32
+               OUT   (250),A
+               LD    BC,(ASCDNO)
+               LD    B,0
+               LD    HL,ASSCOD
+               LDIR
+               BIT   6,D
+               JR    Z,OBJO1
+               RES   6,D
+               INC   A
+               AND   31
+               LD    (DSTPTR),A
+OBJO1:         LD    (DSTPTR+1),DE
+               EX    AF,AF'
+               OUT   (250),A
+               EI
+               EX    AF,AF'
+               LD    HL,(CRANGE)
+               AND   31
+               CP    L
+               LD    C,"1"
+               CALL  NC,ERROR
+               POP   HL
+               POP   DE
+               POP   BC
+               RET
+
+BINHX:         CP    10       ; CONVERT VALUE IN A TO ASCII HEX
+               JR    NC,BINHX1
+               ADD   A,"0"
+               RET
+BINHX1:        ADD   A,"A"-10
+               RET
+
+
+;GET SYMBOL
+;ON ENTRY:
+;  HL POINTS AT 1ST CHAR OF SYMBOL
+;       DE POINTS AT BUFFER
+;ON EXIT:
+;       HL POINTS AT CHAR AFTER SYMBOL
+;       BUFFER CONTAINS SYMBOL
+
+GSYM:          PUSH  IX      ; SAVE REGISTERS
+               PUSH  BC
+               LD    B,0      ; CLEAR CHAR COUNT
+               PUSH  DE      ; SAVE START OF BUFFER POINTER
+               POP   IX
+               INC   DE      ; LEAVE SPACE IN BUFF FOR CHAR COUNT
+GSYM1:         LD    (DE),A      ; PUT CHAR IN BUFFER
+               INC   DE      ; INCREMENT POINTERS
+               INC   HL
+               INC   B      ; AND COUNTER
+               LD    A,B      ; IS THAT 6 CHARS?
+               CP    LABSIZ
+               JR    Z,GSYM2
+               LD    A,(HL)      ; FETCH NEXT CHAR
+               CALL  VALID      ; IS IT VALID IN A SYMBOL?
+               JR    C,GSYM1      ; JUMP IF SO
+GSYM3:         LD    (IX),B      ; NO, END OF SYMBOL
+               POP   BC      ; REPLACE SAVED REGISTERS
+               POP   IX
+               RET
+GSYM2:         LD    A,(HL)      ; SCAN TO FIRST NON VALID CHAR
+               CALL  VALID
+               JR    NC,GSYM3
+               INC   HL
+               JR    GSYM2
+
+DSYM:          PUSH  IX      ; SAVE REGISTERS
+               PUSH  BC
+               LD    B,0      ; CLEAR CHAR COUNT
+               PUSH  DE      ; SAVE START OF BUFFER POINTER
+               POP   IX
+               INC   DE      ; LEAVE SPACE IN BUFF FOR CHAR COUNT
+DSYM1:         LD    (DE),A      ; PUT CHAR IN BUFFER
+               INC   DE      ; INCREMENT POINTERS
+               INC   HL
+               INC   B      ; AND COUNTER
+               LD    A,B      ; IS THAT 6 CHARS?
+               CP    LABSIZ
+               JR    Z,DSYM2
+               LD    A,(HL)      ; FETCH NEXT CHAR
+               CALL  VALI       ; IS IT VALID IN A SYMBOL?
+               JR    C,DSYM1      ; JUMP IF SO
+DSYM3:         LD    (IX),B      ; NO, END OF SYMBOL
+               POP   BC      ; REPLACE SAVED REGISTERS
+               POP   IX
+               RET
+DSYM2:         LD    A,(HL)      ; SCAN TO FIRST NON VALID CHAR
+               CALL  VALI
+               JR    NC,DSYM3
+               INC   HL
+               JR    DSYM2
+
+ISNUM:         CP    "0"
+               CCF
+               RET   NC
+               CP    "9"+1
+               RET
+VALI:          CALL  ISNUM
+               RET   C
+               CALL  ALPHA
+               RET   NC
+               BIT   5,A
+               RET   Z
+               AND   &DF
+               LD    (HL),A  ; TO UPPER
+               SCF
+               RET
+
+;*
+;VALID LABEL CHAR?
+;ON ENTRY:
+;       A CONTAINS CHARACTER
+;ON EXIT:
+;       A CONTANS CHARACTER
+;       CARRY FLAG IS SET IF VALID.
+;*
+VALID:         CALL  ALPHA
+               RET   C
+               CALL  ISNUM
+               RET   C
+               CP    "!"
+               CCF
+               RET   NC
+               CP    34
+               RET   Z
+               RET   C
+               CP    "$"
+               RET   C
+               CP    "."
+               CCF
+               RET   NC
+               RET   Z
+               CP    "/"
+               RET   Z
+               CP    "<"
+               CCF
+               RET   NC
+               CP    "A"
+               RET   C
+               CP    &5C
+               RET   Z
+               SCF
+               RET
+
+;*
+;GET TOKEN(S) FROM LIST
+;ON ENTRY:
+;       SYMBUF CONTAINS SYMBOL
+;       HL CONTAINS POINTER TO LIST POINTER TABLE
+;       DE POINTS AT DESTINATION FOR TOKENS
+;       C CONTAINS NO. OF TOKEN BYTES PER LIST ENTRY.
+;ON EXIT:
+;       TOKEN(S) ARE IN DESTINATION.
+;       LAST ONE IS ALSO IN A
+;       ZERO FLAG SET IF NOT IN LIST.
+;*
+OPTOK:         PUSH  DE            ; SAVE PTR TO DEST FOR TOKENS.
+               LD    A,(SYMBUF)    ; GET NO. OF BYTES IN STRING
+               LD    B,A
+               PUSH  BC            ; SAVE TOKEN BYTE COUNT (C)
+                                  ; AND STRING CHAR COUNT (B)
+               SUB   1             ; (BYTES IN STRING - 1)
+               RLCA               ; *
+               LD    E,A
+               LD    D,0
+               ADD   HL,DE         ; POINTER TO CORRECT WORD OF P
+               LD    A,(HL)
+               INC   HL
+               LD    H,(HL)
+               LD    L,A      ; HL POINTS TO CORRECT SECTION OF LIST
+OPTOK3:        LD    DE,SYMBUF+1
+               POP   BC
+               PUSH  BC      ; B CONTAINS NO. OF CHARS IN STRING
+               LD    A,(HL)        ; GET FIRST CHAR OF LIST ENTRY
+               OR    A             ; IS IT 0?
+               JR    Z,OPTOK4      ; ANO, KONIEC PODPROGRAMU
+OPTOK1:        EX    DE,HL         ; NO, COMPARE A CHAR
+               CP    (HL)
+               EX    DE,HL
+               INC   HL
+               INC   DE
+               JR    NZ,OPTOK2     ; SKUS DALSIU POLOZKU
+               DEC   B             ; CHARS EQU, DECR COUNT
+               LD    A,(HL)        ; GET A CHAR
+               JR    NZ,OPTOK1     ; POROVNAVAJ DALEJ
+               POP   BC            ; NO MORE CHARS TO COMPARE
+               POP   DE            ; MATCH FOUND, GET POINTER AND
+                                  ; COUNT FOR TOKEN BUFFER.
+OPTOK5:        LD    A,(HL)
+               LD    (DE),A        ; PREMIESTNI PRISLUSNE
+               INC   HL            ; TOKENY (2) DO BUF NA (DE)
+               INC   DE
+               DEC   C
+               JR    NZ,OPTOK5
+               INC   C             ; NASTAV NOT ZERO
+               RET                ; O.K.
+
+OPTOK4:        POP   BC            ; ADJUST STACK
+               POP   DE
+               RET
+
+OPTOK2:        LD    A,B           ; ADD REMAINING COUNT+
+               POP   BC
+               PUSH  BC
+               ADD   C
+               DEC   A             ; DALSIA POLOZKA A ZNOVA
+               LD    E,A
+               LD    D,0
+               ADD   HL,DE
+               JR    OPTOK3
+;*
+;LOCATE A GIVEN SYMBOL IN THE SYMBOL TABLE,
+;OR THE CORRECT ALPHABETIC LOCATION FOR IT.
+;ON ENTRY:
+;       SEARCHED SYMBOL IS IN SYMBOL BUFFER.
+;ON EXIT:
+;       DE CONTAINS PNTR TO START OF ENTRY
+;          OR ALPHABETIC INSERTION POSITION.
+;       HL POINTS AT VALUE IF PRESENT
+;       ZERO FLAG SET IF FOUND IN TABLE.
+;*
+LOCATE:        PUSH  BC      ; SAVE REGISTERS
+               PUSH  IX
+               LD    HL,SYMTAB    ; SET POINTER TO SYMBOL TABLE
+               LD    A,(PASSNO)
+               CP    2
+               JR    NZ,LOC1
+               LD    A,(SYMBUF+1)
+               SUB   "A"
+               ADD   A
+               LD    C,A
+               LD    B,0
+               LD    HL,INDTAB
+               ADD   HL,BC
+               LD    A,(HL)
+               INC   HL
+               LD    H,(HL)
+               LD    L,A
+LOC1:          PUSH  HL      ; SAVE POINTER TO START OF ENTRY
+               POP   DE      ; IN DE
+               LD    C,(HL)      ; SAVE NO OF CHARS IN SYM IN C
+               INC   C      ; TEST C FOR ZERO
+               DEC   C
+               JR    Z,LOC3      ; IF ZERO THEN END OF TABLE
+               LD    IX,SYMBUF    ; SET POINTER TO SYMBOL BUFFER
+               LD    B,(IX)      ; SAVE NO OF CHARS IN SEARCHED SYM
+               INC   HL      ; MOVE BOTH POINTERS TO 1ST
+               INC   IX      ; CHARS OF SYMBOLS
+LOC2:          LD    A,(IX)      ; COMPARE A CHAR
+               CP    (HL)
+               JR    C,LOC3      ; TOO FAR
+               JR    NZ,LOC5      ; NOT FAR ENOUGH
+          ; CHARS EQUAL SO FAR
+               INC   HL      ; MOVE BOTH POINTERS ON 1
+               INC   IX
+               DEC   C      ; DECR TABL SYM CHAR COUNT
+               JR    Z,LOC6
+               DEC   B      ; DECR SEARCHED SYM CHAR COUNT
+               JR    Z,LOC3      ; TOO FAR
+               JR    LOC2      ; EQUAL SO FAR
+LOC6:          DEC   B
+               JR    Z,LOC4      ; MATCH FOUND, RETURN WITH ZERO
+          ; FLAG SET, DE POINTING AT
+          ; ENTRY, & HL AT VALUE
+LOC5:          LD    A,3      ; SET POINTER TO NEXT ENTRY
+          ; (ADD COUNTER+3 TO TABLE POINTER)
+               ADD   A,C
+               LD    C,A
+               LD    B,0
+               ADD   HL,BC
+               JR    LOC1
+LOC3:          INC   C      ; TOO FAR, RESET ZERO FLAG
+LOC4:          POP   IX      ; REPLACE REGS & RETURN
+               POP   BC      ; WITH ZERO FLAG=0
+               RET        ; DE CONTAINS START OF ENTRY
+;*
+;TRANSFER LABEL (AND VALUE) TO SYMBOL BUFFER
+;ON ENTRY:  HL CONTAINS VALUE OF LABEL
+;ON EXIT:  HL CONTAINS POINTER TO ATTRIBUTE BYTE
+;             IN SYMBOL BUFFER
+;*
+LBSYM:         PUSH  BC      ; SAVE REGS
+               PUSH  DE
+               LD    A,(LABBUF)    ; HOW MANY CHARS IN LABEL?
+               AND   A      ; IS IT ZERO?
+               JR    Z,LBSYM1    ; JUMP IF SO, NO LABEL
+               INC   A      ; ADD 1 TO NUMBER
+               LD    C,A      ; AND PUT IT IN BC
+               LD    B,0
+               PUSH  HL      ; SAVE VALUE OF LABEL
+               LD    HL,LABBUF    ; SET SOURCE PNTR = LABEL BUFFER
+               LD    DE,SYMBUF    ; SET DEST PNTR = SYMBOL BUFFER
+               LDIR        ; TRANSFER LABEL TO SYMBOL BUFFER
+               EX    DE,HL      ; PUT SYMBOL BUFF PNTR IN HL
+               POP   DE      ; GET VALUE IN DE
+               LD    (HL),E      ; AND PUT IN SYMBUF
+               INC   HL
+               LD    (HL),D
+               INC   HL
+               LD    (HL),0      ; CLEAR ATTRIBUTES BYTE
+               XOR   A      ; CLEAR ZERO FLAG
+               INC   A
+LBSYM1:        POP   DE      ; REPLACE REGS
+               POP   BC
+               RET
+;*
+;INSERT SYMBOL INTO SYMBOL TABLE
+;ON ENTRY DE POINTS AT INSERTION POSITION
+;SYMBOL IS IN SYMBOL BUFFER (SYMBUF)
+;*
+INSERT:        EXX        ; SAVE REGS
+               PUSH  HL
+               PUSH  DE
+               PUSH  BC
+               EXX
+               PUSH  HL
+               PUSH  BC
+               PUSH  DE
+               LD    HL,(LABELS)
+               INC   HL
+               LD    (LABELS),HL
+               LD    HL,(MEMTOP)    ; GET POINTER TO TOP OF
+               LD    DE,-20      ; AVAILABLE RAM (WITH ROOM FOR A
+               ADD   HL,DE      ; ENTRY)
+               LD    DE,(SYMEND)    ; GET PNTR TO END OF SYMBOL TABLE
+               AND   A      ; CLEAR CARRY
+               SBC   HL,DE      ; IS TABLE FULL?
+               JR    NC,INSRT1    ; JUMP IF NOT
+               LD    HL,AFLAGS    ; SET SYM TAB OVERFLOW FLAG
+               SET   2,(HL)
+               POP   DE      ; ADJUST STACK
+               JR    INSRT2
+INSRT1:        POP   DE      ; LEAVE PNTR TO INSERT POS IN DE"
+               PUSH  DE
+               EXX
+               POP   DE      ; GET PNTR TO INSERT POS
+          ; OPEN UP A GAP IN TABLE USING
+          ; BLOCK MOVE. DE WILL CONTAIN DEST.
+          ; HL THE SOURCE AND BC THE NO.
+          ; OF BYTES
+               AND   A      ; CLEAR CARRY
+               LD    HL,(SYMEND)    ; FIND NO OF BYTES BETWEEN INSERTION
+               SBC   HL,DE      ; POSITION AND END OF SYMBOL
+               INC   HL      ; TABLE
+               PUSH  HL      ; SAVE NO OF BYTES ON STACK
+               LD    HL,(SYMEND)
+               LD    D,H
+               LD    E,L
+               LD    A,(SYMBUF)    ; CALCULATE NO OF BYTES FOR INSERTION
+               ADD   A,4
+               LD    C,A      ; PUT IN BC
+               LD    B,0
+               PUSH  BC      ; SAVE IN BC"
+               EXX
+               POP   BC
+               EXX
+               ADD   HL,BC
+               LD    (SYMEND),HL    ; SAVE NEW END OF SYMBOL TABLE
+               EX    DE,HL
+               POP   BC      ; NO OF BYTES
+               LDDR        ; MOVE BLOCK TO OPEN GAP
+          ; INSERT NEW SYMBOL RECORD
+          ; INTO GAP
+               EXX
+               LD    HL,SYMBUF
+               LDIR
+INSRT2:        POP   BC      ; REPLACE REGS
+               POP   HL
+               EXX
+               POP   BC
+               POP   DE
+               POP   HL
+               EXX
+               RET
+;*
+;SCAN TO NEXT NON SPACE CHAR
+;ON ENTRY:
+;       HL CONTAINS POINTER
+;ON EXIT:
+;       HL POINTS AT FIRST NON-SPACE CHAR
+;*
+SCNSP:         LD    A,(HL)      ; GET A CHAR
+               CP    SPACE      ; IS IT A SPACE?
+               RET   NZ      ; IF NOT RETURN
+               INC   HL      ; INCREMENT POINTER
+               JR    SCNSP
+;*
+;CHECK IF ASCII CHAR IN ACC
+;IS A LETTER. SET CARRY FLAG IF SO.
+;*
+ALPHA:         CP    "A"
+               JR    C,ALPHA1
+               CP    "Z"+1
+               RET   C
+               CP    "_"
+               SCF
+               RET   Z
+               CP    "a"
+               JR    C,ALPHA1
+               CP    "z"+1
+               RET
+ALPHA1:        OR    A      ; NOT LETTER, CLEAR CARRY
+               RET
+;*
+;CHECK IF DIGIT (0-9) IN ACC.
+;IF SO, RETURN WITH CARRY SET.
+;*
+DIGIT:         CP    "0"
+               JR    C,DIGIT1
+               CP    "9"+1
+               RET
+DIGIT1:        OR    A      ; NOT DIGIT, CLEAR CARRY
+               RET
+;*
+;ERROR ROUTINE. SET ERROR CHAR IF NOT
+;ALREADY SET.
+;ON ENTRY:
+;       C CONTAINS ASCII ERROR CHAR
+;ON EXIT:
+;       ERRBUF CONTAINS ERROR CHAR
+;*
+ERROR:         LD    A,C
+               CP    "D"
+               JR    Z,FAT
+               CP    "2"
+               JR    C,FAT
+               CP    "R"
+               JR    Z,FAT
+               CP    "I"
+               JR    Z,FAT
+ERROR2:        LD    A,(ERRBUF)    ; GET CONTENT OF ERROR DISPLAY
+               CP    SPACE      ; IS IT A SPACE?
+               RET   NZ
+               LD    A,C      ; YES, REPLACE WITH ERROR INDICATOR
+               LD    (ERRBUF),A
+               RET
+
+FAT:           LD    A,(AFLAGS)
+               SET   4,A
+               LD    (AFLAGS),A
+               JR    ERROR2
+
+;*
+;TABULKA NA PREVOD
+;
+FORL:          CP    T#A
+               JR    C,FORL1
+               CP    T#Z+1
+               JR    NC,FORL1
+               LD    L,A
+               LD    H,0
+               ADD   HL,HL
+               LD    BC,ORLSTP-256
+               ADD   HL,BC
+               LD    A,(HL)
+               AND   A
+               JR    Z,FORL1
+               LDI
+               LD    A,(HL)
+               LDI
+               INC   H
+               RET
+FORL1:         XOR   A
+               RET
+;*
+;OPERATOR LIST
+;EACH SECTION OF LIST CONTAINS OPERATOR
+;STRING FOLLOWED BY OPERATOR GROUP TOKEN
+;(1-1D) FOLLOWED BY OPERATOR VALUE.
+;*
+ORLSTP:        DW    0              ; A
+               DB    &1B,8          ; ADC
+               DB    &1C,0          ; ADD
+               DW    0              ; AF
+               DB    &0C,&20        ; AND
+               DW    0              ; B
+               DW    0              ; BC
+               DB    &10,&40        ; BIT
+               DW    0              ; C
+               DB    &94,0          ; CALL
+               DB    &0A,&3F        ; CCF
+               DB    &0C,&38        ; CP
+               DB    &0B,&A9        ; CPD
+               DB    &0B,&B9        ; CPDR
+               DB    &0B,&A1        ; CPI
+               DB    &0B,&B1        ; CPDI
+               DB    &0A,&2F        ; CPL
+               DW    0              ; D
+               DB    &0A,&27        ; DAA
+               DW    0              ; DE
+               DB    &0D,&09        ; DEC
+               DW    5              ; DB
+               DW    DEFMTK         ; DM
+               DW    7              ; DS
+               DW    6              ; DW
+               DB    &0A,&F3        ; DI
+               DB    &13,0          ; DJNZ
+               DW    4              ; DUMP
+               DW    0              ; E
+               DB    &0A,&FB        ; EI
+               DW    2              ; EQU
+               DB    &1A,0          ; EX
+               DB    &0A,&D9        ; EXX
+               DW    0              ; H
+               DB    &0A,&76        ; HALT
+               DW    0              ; HL
+               DW    0              ; I
+               DB    &0E,0          ; IM
+               DB    &17,0          ; IN
+               DB    &0D,0          ; INC
+               DB    &0B,&AA        ; IND
+               DB    &0B,&BA        ; INDR
+               DB    &0B,&A2        ; INI
+               DB    &0B,&B2        ; INIR
+               DW    0              ; IX
+               DW    0              ; IY
+               DB    &91,0          ; JP
+               DB    &92,0          ; JR
+               DW    0              ; L
+               DB    &1D,0          ; LD
+               DB    &0B,&A8        ; LDD
+               DB    &0B,&B8        ; LDDR
+               DB    &0B,&A0        ; LDI
+               DB    &0B,&B0        ; LDIR
+               DW    0              ; LIST
+               DW    0              ; M
+               DW    MDATTOK        ; MDAT
+               DW    0              ; NC
+               DB    &0B,&44        ; NEG
+               DB    &0A,00         ; NOP
+               DW    0              ; NZ
+               DW    0              ; OFF
+               DW    0              ; ON
+               DB    &0C,&30        ; OR
+               DW    1              ; ORG
+               DB    &0B,&BB        ; OTDR
+               DB    &0B,&B3        ; OTIR
+               DB    &18,0          ; OUT
+               DB    &0B,&AB        ; OUTD
+               DB    &0B,&A3        ; OUTI
+               DW    0              ; P
+               DW    0              ; PE
+               DW    0              ; PO
+               DB    &19,&C1        ; POP
+               DB    &19,&C5        ; PUSH
+               DW    0              ; R
+               DB    &10,&80        ; RES
+               DB    &95,0          ; RET
+               DB    &0B,&4D        ; RETI
+               DB    &0B,&45        ; RETN
+               DB    &0F,&10        ; RL
+               DB    &0A,&17        ; RLA
+               DB    &0F,0          ; RLC
+               DB    &0A,7          ; RLCA
+               DB    &0B,&6F        ; RLD
+               DB    &0F,&18        ; RR
+               DB    &0A,&1F        ; RRA
+               DB    &0F,&08        ; RRC
+               DB    &0A,&0F        ; RRCA
+               DB    &0B,&67        ; RRD
+               DB    &16,0          ; RST
+               DB    &1B,&10        ; SBC
+               DB    &0A,&37        ; SCF
+               DB    &10,&C0        ; SET
+               DB    &0F,&20        ; SLA
+               DB    &0F,&30        ; SLL
+               DW    0              ; SP
+               DB    &0F,&28        ; SRA
+               DB    &0F,&38        ; SRL
+               DB    &0C,&10        ; SUB
+               DB    &0C,&28        ; XOR
+               DW    0              ; Z
+
+;OPERAND KEYWORD LIST
+;CONTAINS OPERAND KEYWORDS FOLLOWED BY
+;TOKENS FOR THEM.
+
+OPKLST:        DW    OPKW1      ; POINTER LIST TO DIFFERENT
+               DW    OPKW2      ; SECTIONS OF OPERAND
+               DW    OPKW3      ; KEYWORD LIST.
+OPKW1:         DB    T#A
+               DB    &77
+               DB    T#B
+               DB    &70
+               DB    T#C
+               DB    &71
+               DB    T#D
+               DB    &72
+               DB    T#E
+               DB    &73
+               DB    T#H
+               DB    &74
+               DB    T#L
+               DB    &75
+               DB    T#Z
+               DB    &89
+               DB    T#P
+               DB    &8E
+               DB    T#M
+               DB    &8F
+               DB    T#I
+               DB    &20
+               DB    T#R
+               DB    &21
+
+               DB    T#AF
+               DB    &17
+               DB    T#BC
+               DB    &10
+               DB    T#DE
+               DB    &11
+               DB    T#HL
+               DB    &12
+               DB    T#SP
+               DB    &13
+               DB    T#IX
+               DB    &1A
+               DB    T#IY
+               DB    &1E
+               DB    T#NC
+               DB    &8A
+               DB    T#NZ
+               DB    &88
+               DB    T#PE
+               DB    &8D
+               DB    T#PO
+               DB    &8C
+OPKW2:
+OPKW3:         DB    0
+
+
+;BRACKETABLE OPERAND LIST.
+
+BKLST:         DB    &12       ; HL
+               DB    &40       ; (HL)
+               DB    &1A       ; IX
+               DB    &48       ; (IX)
+               DB    &1E       ; IY
+               DB    &4C       ; (IY)
+               DB    &13       ; SP
+               DB    &50       ; (SP)
+               DB    &11       ; DE
+               DB    &61       ; (DE)
+               DB    &10       ; BC
+               DB    &60       ; (BC)
+               DB    &71       ; C
+               DB    &A0       ; (C)
+               DB    &CA       ; IX+D
+               DB    &BA       ; (IX+D)
+               DB    &CE       ; IY+D
+               DB    &BE       ; (IY+D)
+               DB    &90       ; N
+               DB    &D0       ; (N)
+               DB    0        ; END OF LIST
+
+;MULTI-CHARACTER FUNCTION LIST.
+
+MFLSTP:        DW    MCF1
+               DW    MCF2
+               DW    MCF3
+               DW    MCF4
+MCF1:
+MCF2:          NOP
+
+MCF3:          DM    "LOW"
+               DB    &27
+               DM    "RES"
+               DB    &2E
+               DM    "SHR"
+               DB    &55
+               DM    "SHL"
+               DB    &5D
+               DM    "AND"
+               DB    &73
+               DB    0
+
+MCF4:          DM    "HIGH"
+               DB    &1F
+               DB    0
+                                ;SINGLE CHAR FUNCTION LIST.
+SCF1:          DM    "+"
+               DB    &07
+
+               DM    "-"
+               DB    &0F
+
+               DM    "!"
+               DB    &17
+
+               DM    "*"
+               DB    &3D
+
+               DM    "/"
+               DB    &45
+
+               DM    "\"
+               DB    &4D
+
+               DM    "|"
+               DB    &7A
+
+               DM    "^"
+               DB    &82
+
+               DM    "="
+               DB    &89
+
+               DM    ">"
+               DB    &A1
+
+               DM    "<"
+               DB    &A9
+               DB    0
+
+ERRTAB:        DB    "A"+128
+               DM    "Arithmetic overflow"
+               DB    -1
+               DB    "V"+128
+               DM    "Value error"
+               DB    -1
+               DB    "O"+128
+               DM    "Stack overflow"
+               DB    -1
+               DB    "S"+128
+               DM    "Syntax error"
+               DB    -1
+               DB    "B"+128
+               DM    "Balance error"
+               DB    -1
+               DB    "U"+128
+               DM    "Undefined symbol"
+               DB    -1
+               DB    "Z"+128
+               DM    "Divide by ZERO"
+               DB    -1
+               DB    "M"+128
+               DM    "Multiply defined symbol"
+               DB    -1
+               DB    "P"+128
+               DM    "Phase error"
+               DB    -1
+               DB    "R"+128
+               DM    "Displacement out of range"
+               DB    -1
+               DB    "I"+128
+               DM    "Invalid char"
+               DB    -1
+               DB    "D"+128
+               DM    "Disc error"
+               DB    -1
+               DB    "0"+128
+               DM    "Include in include"
+               DB    -1
+               DB    "1"+128
+               DM    "Code in workspace"
+               DB    -1
+               DB    "2"+128
+               DM    "Too big source"
+               DB    -1
+
+WARNNG1:       DM    "UNKNOWN ERROR"
+               DB    -1
+
+CONST:         PUSH  BC        ; SAVE REG
+CONST1:        LD    A,(HL)
+               CP    -1
+               JR    Z,CONST2
+               LD    C,A
+               CALL  CO
+               INC   HL
+               JR    CONST1
+CONST2:        POP   BC        ; REPLACE REG
+               RET
+
+
+TOKENY:        DB    &C1,"A","D",&C3,"A","D",&C4,"A"
+               DB    &C6,"A","N",&C4,&C2,"B",&C3,"B","I",&D4
+               DB    &C3,"C","A","L",&CC,"C","C",&C6,"C",&D0
+               DB    "C","P",&C4,"C","P","D",&D2,"C","P",&C9
+               DB    "C","P","I",&D2,"C","P",&CC,&C4,"D","A"
+               DB    &C1,"D",&C5,"D","E",&C3,"D","E","F",&C2
+               DB    "D","E","F",&CD,"D","E","F",&D3,"D","E"
+               DB    "F",&D7,"D",&C9,"D","J","N",&DA,"D","U"
+               DB    "M",&D0,&C5,"E",&C9,"E","Q",&D5,"E",&D8
+               DB    "E","X",&D8,&C8,"H","A","L",&D4,"H",&CC
+               DB    &C9,"I",&CD,"I",&CE,"I","N",&C3,"I","N"
+               DB    &C4,"I","N","D",&D2,"I","N",&C9,"I","N"
+               DB    "I",&D2,"I",&D8,"I",&D9,"J",&D0,"J",&D2
+               DB    &CC,"L",&C4,"L","D",&C4,"L","D","D",&D2
+               DB    "L","D",&C9,"L","D","I",&D2,"L","I","S"
+               DB    &D4,&CD,"M","D","A",&D4,"N",&C3,"N","E"
+               DB    &C7,"N","O",&D0,"N",&DA,"O","F",&C6,"O"
+               DB    &CE,"O",&D2,"O","R",&C7,"O","T","D",&D2
+               DB    "O","T","I",&D2,"O","U",&D4,"O","U","T"
+               DB    &C4,"O","U","T",&C9,&D0,"P",&C5,"P",&CF
+               DB    "P","O",&D0,"P","U","S",&C8,&D2,"R","E"
+               DB    &D3,"R","E",&D4,"R","E","T",&C9,"R","E"
+               DB    "T",&CE,"R",&CC,"R","L",&C1,"R","L",&C3
+               DB    "R","L","C",&C1,"R","L",&C4,"R",&D2,"R"
+               DB    "R",&C1,"R","R",&C3,"R","R","C",&C1,"R"
+               DB    "R",&C4,"R","S",&D4,"S","B",&C3,"S","C"
+               DB    &C6,"S","E",&D4,"S","L",&C1,"S","L",&CC
+               DB    "S",&D0,"S","R",&C1,"S","R",&CC,"S","U"
+               DB    &C2,"X","O",&D2,&DA,&FF
+;
+;*
+;RAM STORAGE AREA.
+;*
+PAGE:          NOP         ; START SRC. PAGE
+FPTR:          DW    0      ; PTR TO HEADER
+BUFFER:        DS    1      ; FIRST BUFER
+LINBUF:        DS    70
+MEMTOP:        DW    &FFFF  ; HIGHEST AVAILABLE RAM LOC. ADDR
+PASSNO:        DS    1      ; PASS NUMBER
+LINPNT:        DS    2      ; POINTER TO LINE BUFFER
+LABBUF:        DS    16     ; LABEL BUFFER
+SYMBUF:        DS    40     ; SYMBOL BUFFER
+ERRBUF:        DS    1      ; ERROR INDICATOR BUFFER
+ADREFC:        DS    2      ; ADDRESS REFERENCE COUNTER
+ADDISR:        DS    2      ; ADDRESS DISPLAY REGISTER
+ASCDNO:        DS    1      ; NO. OF BYTES OF ASSEMBLED CODE
+MEMPTR:        DW    0      ; PTR TO NEXT BUFFER
+ASSCOD:        DS    ACBSIZ
+SRCPTR:        DS    3      ; ZDROJAK
+SRC2:          DS    3      ; DOCASNA USCHOVA
+SYMEND:        DS    2      ; POINTER TO END OF SYMBOL TABLE
+ORTKBF:        DS    2      ; OPERATOR TOKEN BUFFER
+TEMP:          DS    2      ; DUMMY LOCATION
+ODBT1:         DS    1      ; OPERAND-1 TOKEN BUFFER
+ODBT2:         DS    1      ; OPERAND-2 TOKEN BUFFER
+ODINT1:        DS    2      ; OPERAND-1 VALUE
+ODINT2:        DS    2      ; OPERAND-2 VALUE
+DUMPF:         NOP
+AFLAGS:        NOP         ; ASSEMBLY FLAGS
+NOINC:         DB    0
+
+          ; BIT 0 - ADDR DISCONT. FLAG
+          ; BIT 1 - END FLAG
+          ; BIT 2 - SYMB TABLE O/F FLAG
+          ; BIT 3 - INCLUDE
+          ; BIT 4 - FATAL ERROR
+CRANGE:        NOP
+SRCOPN:        DB    0
+FTOKR:         DS    1      ; FUNCTION TOKEN REGISTER
+FCNT:          DS    1      ; FUNCTION STACK COUNTER
+FSTK:          DS    MAXFSK ; START OF FUNCTION STACK
+ARCNT:         DS    1      ; ARITHMETIC STACK COUNTER
+ARSTK:         DS    MAXASK ; ARITHMETIC STACK
+
+INDTAB:        DS    INDSIZ
+
+               ORG   &A000  ; MUST START ON PAGE BOUNDARY
+SYMTAB:                    ; SYMBOL TABLE HERE TO MEMTOP
+
+; SYMBOL 0 BAJT DLZKA RETAZCA
+;        1 ... VLASTNYSYMBOL
+;        HODNOTA (2 BAJTY)
+;        FLAG 1 BAJT  ; BIT 7 IF USED
+                      ; BIT 1
+                      ; BIT 0
+
+
