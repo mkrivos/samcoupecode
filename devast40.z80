@@ -1,0 +1,2985 @@
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;                                                              +
+;                    DEWAST 40  (LOW)                          +
+;                                                              +
+;              MONITOR - DEBUGGER for SAM Coupe                +
+;                                                              +
+; The work at this program - start 17.december 1993 14:00      +
+;                                                              +
+;                          - end   22.DECEMBER 1993 12:21      +
+;                                                              +
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                                                                
+                                                                
+;       -5 : OPTION     0 - DISA LINE SPACE                     
+;       -4 : MYVMPR     1 - L FEED                              
+; flag: -3 : prn        2 - F FEED                              
+;       -2 : LMPR                                               
+;       -1 : VMPR                                               
+                                                                
+                                                                
+                                                                
+                                                                
+                                                                
+START:         EQU  &4000                                       
+                                                                
+VRAM:          EQU  &C000                                       
+                                                                
+               DUMP 14,&0000                                    
+                                                                
+               ORG  START                                       
+                                                                
+                                                                
+               DI                                               
+                                                                
+               PUSH AF                                          
+               PUSH HL                                          
+                                                                
+               IN   A,(251)                                     
+               LD   (QUIT+1+16384),A                            
+               AND  31                                          
+                                                                
+               DEC  A                                           
+               JR   NZ,NOPA                                     
+                                                                
+               LD   HL,NOPA+16384                               
+               JP   &5C            ; pokial nieje page 0        
+                                                                
+NOPA:          IN   A,(252)        ; uloz vram                  
+               LD   (VR+1+16384),A                              
+                                                                
+               LD   A,(FLAG+16380)                              
+               AND  A                                           
+               JR   NZ,NOVIDEO                                  
+               IN   A,(251)        ; a vypocitaj novu           
+               OR   &60                                         
+               AND  &FE                                         
+NOVIDEO:       OUT  (252),A        ; nastav ju                  
+               LD   (FLAG+16380),A                              
+                                                                
+               IN   A,(250)        ; schovaj si aj LMPR         
+               LD   (Q2+1+16384),A                              
+                                                                
+               IN   A,(251)                                     
+               AND  31                                          
+               DEC  A                                           
+               OR   32                                          
+               OUT  (250),A                                     
+               JP   $+3                                         
+                                                                
+               LD   A,(FLAG-2)     ; a nastav standardny        
+               OUT  (251),A                                     
+                                                                
+               POP  HL                                          
+               POP  AF                                          
+               LD   (STC+1),SP                                  
+                                                                
+REST:          DI                  ; uloz registre              
+               LD   (STACK),SP                                  
+               LD   SP,REGS                                     
+               EXX                                              
+               EX   AF,AF'                                      
+               PUSH AF                                          
+               PUSH HL                                          
+               PUSH DE                                          
+               PUSH BC                                          
+               PUSH IY                                          
+               PUSH IX                                          
+               EXX                                              
+               EX   AF,AF'                                      
+               PUSH AF                                          
+               PUSH HL                                          
+               PUSH DE                                          
+               PUSH BC                                          
+               LD   A,I                                         
+               LD   H,A                                         
+               LD   A,R                                         
+               LD   L,A                                         
+               PUSH HL                                          
+                                                                
+ST2:           LD   SP,MYSP                                     
+               LD   IY,FLAG                                     
+               LD   A,&E8                                       
+               DEFB 195                                         
+VECT:          DEFW MONIT                                       
+                                                                
+TREG:          DEFM "SPIRBCDEHLAFIXIYB'D'H'A'NZZ NCC POPEP M DI"
+               DEFM "EI"                                        
+                                                                
+KLAVESY:       DEFB 0,&FD,"!",&C0,12,"@",&C9,"r",&C3,"X"        
+               DEFB &2E,&3A,34,&2B,10,&C8,&C5,&C2,"X"           
+               DEFB &2C,&3B,&3D,&2D," ",&C7,&C4,&C1,9           
+               DEFM "bhy65tgv"                                  
+               DEFB 8                                           
+               DEFM "nju74rfc"                                  
+               DEFB 10                                          
+               DEFM "mki83edx"                                  
+               DEFB 11                                          
+               DEFM "Xlo92wszX "                                
+               DEFB 13                                          
+               DEFM "p01qa\"                                    
+                                                                
+KLAV2:         DEFB 0,&FE,"!",&CA,14,"@",&D3,&D0,205            
+               DEFM "X.:"                                      
+               DEFB 42,9,011,&CF,&CC                            
+               DEFM "X,;_/ "                                    
+               DEFB &D1,&CE,&CB,9                               
+               DEFM "BHY&%TGV"                                  
+               DEFB 8                                           
+               DEFM "NJU'$RFC"                                  
+               DEFB 10                                          
+               DEFM "MKI(#EDX"                                  
+               DEFB 11                                          
+               DEFM "XLO)@WSZX "                                
+               DEFB 13                                          
+               DEFM "P~!QA\"                                    
+                                                                
+L40E0:         DEFW BLOP                                        
+               DEFB &10                                         
+                                                                
+               DEFW LZF                                         
+               DEFB &18                                         
+                                                                
+               DEFW HALTUJ                                      
+               DEFB &76                                         
+                                                                
+               DEFW HARDS                                       
+               DEFB &C3                                         
+                                                                
+               DEFW HARDC                                       
+               DEFB &CD                                         
+                                                                
+               DEFW JPHL                                        
+               DEFB &E9                                         
+                                                                
+               DEFW ZAKAZ                                       
+               DEFB &F3                                         
+                                                                
+               DEFW POVOL                                       
+               DEFB &FB                                         
+                                                                
+               DEFW L4F49                                       
+               DEFB &C9                                         
+                                                                
+               DEFB 0,0,0                                       
+                                                                
+L40F4:         DEFW L4E6A                                       
+               DEFB &C0                                         
+                                                                
+               DEFW PSKOK                                       
+               DEFB &C2                                         
+                                                                
+               DEFW KROKCALL                                    
+               DEFB &C4                                         
+                                                                
+               DEFW FAST                                        
+               DEFB &C7                                         
+                                                                
+               DEFB 0,0,0                                       
+                                                                
+TABCOM:        DEFW MOVE                                        
+               DEFB "i"                                         
+                                                                
+               DEFW RETURN                                      
+               DEFB "C"                                         
+                                                                
+               DEFW LMPR                                        
+               DEFB "r"                                         
+                                                                
+               DEFW BASE                                        
+               DEFB &C3                                         
+                                                                
+               DEFW OPTION                                      
+               DEFB &C2                                         
+                                                                
+               DEFW MYSCR                                       
+               DEFB &C1                                         
+                                                                
+               DEFW COMPARE                                     
+               DEFB "j"                                         
+                                                                
+               DEFW COMPARE+1                                   
+               DEFB "J"                                         
+                                                                
+               DEFW CHANGE                                      
+               DEFB &C9                                         
+                                                                
+               DEFW CHANGE1                                     
+               DEFB &C8                                         
+                                                                
+               DEFW EXCH                                        
+               DEFB "E"                                         
+                                                                
+               DEFW THIRD                                       
+               DEFB &C5                                         
+                                                                
+               DEFW READ                                        
+               DEFB "R"                                         
+                                                                
+               DEFW WRITE                                       
+               DEFB "W"                                         
+                                                                
+               DEFW PRN                                         
+               DEFB &C7                                         
+                                                                
+               DEFW MOVE1                                       
+               DEFB "I"                                         
+                                                                
+               DEFW QUIT                                        
+               DEFB "Q"                                         
+                                                                
+               DEFW REGISTR                                     
+               DEFB "N"                                         
+                                                                
+               DEFW POKE                                        
+               DEFB 13                                          
+                                                                
+               DEFW DPOKE                                       
+               DEFB " "                                         
+                                                                
+               DEFW BASE                                        
+               DEFB "#"                                         
+                                                                
+               DEFW TEXTV1                                      
+               DEFB "o"                                         
+                                                                
+               DEFW TEXTV                                       
+               DEFB "O"                                         
+                                                                
+               DEFW DISAV                                       
+               DEFB "v"                                         
+                                                                
+               DEFW DISAV1                                      
+               DEFB "$"                                         
+                                                                
+               DEFW DUMPV1                                      
+               DEFB "l"                                         
+                                                                
+               DEFW DUMPV                                       
+               DEFB "L"                                         
+                                                                
+               DEFW FILL                                        
+               DEFB "p"                                         
+                                                                
+               DEFW FILL1                                       
+               DEFB "P"                                         
+                                                                
+               DEFW CALC                                        
+               DEFB "A"                                         
+                                                                
+               DEFW FIND                                        
+               DEFB "g"                                         
+                                                                
+               DEFW HLADAJ                                      
+               DEFB "n"                                         
+                                                                
+               DEFW WIEWF                                       
+               DEFB "G"                                         
+                                                                
+               DEFW SLOW                                        
+               DEFB "Z"                                         
+                                                                
+               DEFW FAST                                        
+               DEFB "X"                                         
+                                                                
+               DEFW TSLOW                                       
+               DEFB "V"                                         
+                                                                
+               DEFW TFAST                                       
+               DEFB "B"                                         
+                                                                
+               DEFW VELKE                                       
+               DEFB "@"                                         
+                                                                
+               DEFW MENEJ                                       
+               DEFB 11                                          
+                                                                
+               DEFW NEXT                                        
+               DEFB 10                                          
+                                                                
+               DEFW SCHOVAJ                                     
+               DEFB 9                                           
+                                                                
+               DEFW SCHOVAJ+3                                   
+               DEFB "m"                                         
+                                                                
+               DEFW WIEWMEM                                     
+               DEFB "q"                                         
+                                                                
+               DEFW WIEWSP                                      
+               DEFB "u"                                         
+                                                                
+               DEFW SCREEN                                      
+               DEFB "s"                                         
+                                                                
+               DEFW MODE                                        
+               DEFB "S"                                         
+                                                                
+               DEFW SETPOINT                                    
+               DEFB "w"                                         
+                                                                
+               DEFW BREAKPOINT                                  
+               DEFB "U"                                         
+                                                                
+               DEFW VOLAJ                                       
+               DEFB "H"                                         
+                                                                
+               DEFW JUMP                                        
+               DEFB "T"                                         
+                                                                
+               DEFW EDITOR                                      
+               DEFB "t"                                         
+                                                                
+               DEFW SKAC                                        
+               DEFB &C4                                         
+                                                                
+               DEFW CALUJ                                       
+               DEFB 8                                           
+                                                                
+               DEFB 0,0,0                                       
+                                                                
+LINE:          CALL CLL                                         
+               PUSH IX                                          
+               CALL P_BYTE                                      
+               CALL STRING                                      
+               DEFB 128                                         
+               POP  HL                                          
+               DEFB &DD                                         
+               LD   A,L                                         
+               SUB  L                                           
+               LD   (LENINS),A                                  
+               LD   B,A                                         
+               AND  A                                           
+               RET  Z                                           
+               CALL NUMBER                                      
+               CALL SPC                                         
+PBY:           LD   A,(HL)                                      
+               INC  HL                                          
+               CALL HEX_8+4                                     
+               DJNZ PBY                                         
+               RET                                              
+                                                                
+CHAR:          EX   (SP),HL                                     
+               PUSH AF                                          
+               LD   A,(HL)                                      
+               INC  HL                                          
+               CALL PRINT                                       
+               POP  AF                                          
+               EX   (SP),HL                                     
+               RET                                              
+                                                                
+PRB:           DEFS 43                                          
+                                                                
+LPT:           PUSH AF                                          
+               CP   1                                           
+               JR   Z,CRLF                                      
+                                                                
+               CP   " "                                         
+               JR   C,NFF                                       
+                                                                
+               LD   A,(POS)                                     
+               LD   C,0                                         
+ODC:           AND  A                                           
+               JR   Z,POZ                                       
+               SUB  3                                           
+               INC  C                                           
+               JR   ODC                                         
+POZ:           LD   HL,PRB                                      
+               LD   A,C                                         
+               AND  31                                          
+               LD   C,A                                         
+               LD   B,0                                         
+               ADD  HL,BC                                       
+               POP  AF                                          
+               LD   (HL),A                                      
+               RET                                              
+                                                                
+               PUSH AF                                          
+CRLF:          LD   HL,PRB                                      
+               LD   B,32                                        
+               LD   A,(HL)                                      
+               LD   (HL)," "                                    
+               INC  HL                                          
+               CALL PRT                                         
+               DJNZ CRLF+5                                      
+               LD   A,13                                        
+               CALL PRT                                         
+               LD   A,10                                        
+               BIT  1,(IY-5)                                    
+               CALL NZ,PRT                                      
+               DEC  (HL)                                        
+               JR   NZ,NFF                                      
+               LD   A,12                                        
+               BIT  2,(IY-5)                                    
+               CALL NZ,PRT                                      
+               LD   A,62                                        
+               LD   (HL),A                                      
+NFF:           POP  AF                                          
+               RET                                              
+                                                                
+PRT:           PUSH BC                                          
+               PUSH AF                                          
+               CALL ESCA                                        
+               LD   BC,&1E9                                     
+               IN   A,(C)                                       
+               RRCA                                             
+               JR   C,PRT+2                                     
+               POP  AF                                          
+               DEC  C                                           
+               OUT  (C),A                                       
+               INC  C                                           
+               OUT  (C),B                                       
+               DEC  B                                           
+               NOP                                              
+               OUT  (C),B                                       
+               POP  BC                                          
+               RET                                              
+                                                                
+ESCA:          LD   A,&7F                                       
+               IN   A,(&FE)                                     
+               RRCA                                             
+               RET  C                                           
+               POP  AF                                          
+               POP  AF                                          
+               POP  BC                                          
+               RET                                              
+                                                                
+L412B:         LD   HL,L59E5                                    
+               LD   A,(HL)                                      
+               INC  HL                                          
+               PUSH AF                                          
+               CALL TAB                                         
+               NOP                                              
+               POP  AF                                          
+               LD   B,A                                         
+               AND  A                                           
+               JR   Z,CUR                                       
+                                                                
+L3D:           CALL DEFROMHL                                    
+               EX   DE,HL                                       
+               CALL NUMBER                                      
+               EX   DE,HL                                       
+               CALL STRING                                      
+               DEFB &DC                                         
+               DJNZ L3D                                         
+                                                                
+CUR:           LD   A,">"+128                                   
+               JR   PRINT                                       
+                                                                
+LF:            LD   A,1                                         
+               JR   PRINT                                       
+                                                                
+SPC:           LD   A," "                                       
+PRINT:                                                          
+               PUSH AF                                          
+               EXX                                              
+                                                                
+               BIT  1,(IY-3)                                    
+               CALL NZ,LPT                                      
+                                                                
+               PUSH AF                                          
+               IN   A,(251)                                     
+               LD   (ENP+1),A                                   
+               LD   A,(FLAG-4)                                  
+               AND  31                                          
+               OUT  (251),A                                     
+               POP  AF                                          
+                                                                
+               LD   HL,POS                                      
+               CP   1                                           
+                                                                
+               JR   NZ,PRT2                                     
+               LD   (HL),0                                      
+               INC  HL                                          
+               LD   A,(HL)                                      
+               ADD  4                                           
+               CP   4*8                                         
+               LD   (HL),A                                      
+               JR   C,ENP                                       
+               LD   (HL),&1C                                    
+; scroll up 1                                                   
+               LD   HL,(ADRV)                                   
+               LD   D,H                                         
+               LD   E,L                                         
+               INC  H                                           
+               INC  H                                           
+               INC  H                                           
+               INC  H                                           
+               LD   B,7*8                                       
+                                                                
+SLOP:          PUSH BC                                          
+               LD   A,12                                        
+M1:            LDI                                              
+               LDI                                              
+               LDI                                              
+               LDI                                              
+               LDI                                              
+               LDI                                              
+               LDI                                              
+               LDI                                              
+               DEC  A                                           
+               JR   NZ,M1                                       
+               LD   BC,&20                                      
+               ADD  HL,BC                                       
+               EX   DE,HL                                       
+               ADD  HL,BC                                       
+               EX   DE,HL                                       
+               POP  BC                                          
+                                                                
+               DJNZ SLOP                                        
+               EX   DE,HL                                       
+               LD   BC,&6008                                    
+               LD   DE,32                                       
+M2:            PUSH BC                                          
+               LD   (HL),0                                      
+               INC  HL                                          
+               DJNZ M2+1                                        
+               POP  BC                                          
+               ADD  HL,DE                                       
+               DEC  C                                           
+               JR   NZ,M2                                       
+                                                                
+ENP:           LD   A,00                                        
+               OUT  (251),A                                     
+               POP  AF                                          
+               EXX                                              
+               RET                                              
+                                                                
+PRT2:          CP   " "                                         
+               JR   C,SETP                                      
+               SUB  " "                                         
+               PUSH HL                                          
+               DEFB 17                                          
+POS:           DEFW 0                                           
+               DEFB 33                                          
+ADRV:          DEFW VRAM                                        
+               ADD  HL,DE                                       
+               RES  0,H                                         
+               RES  1,H                                         
+               RES  7,L                                         
+               EX   DE,HL                                       
+               BIT  7,A                                         
+               RES  7,A                                         
+               LD   L,A                                         
+               PUSH AF                                          
+               ADD  A                                           
+               ADD  L                                           
+               LD   L,A                                         
+               LD   H,0                                         
+               RL   H                                           
+               ADD  HL,HL                                       
+               ADD  HL,HL                                       
+               ADD  HL,HL                                       
+               LD   BC,FONT                                     
+               ADD  HL,BC                                       
+               POP  AF                                          
+               LD   C,0                                         
+               JR   Z,$+4                                       
+               LD   C,255                                       
+               LD   B,8                                         
+PLOP:          PUSH BC                                          
+               LD   A,(HL)                                      
+               XOR  C                                           
+               LD   (DE),A                                      
+               INC  HL                                          
+               INC  E                                           
+               LD   A,(HL)                                      
+               XOR  C                                           
+               LD   (DE),A                                      
+               INC  HL                                          
+               INC  E                                           
+               LD   A,(HL)                                      
+               XOR  C                                           
+               LD   (DE),A                                      
+               LD   BC,128-2                                    
+               EX   DE,HL                                       
+               ADD  HL,BC                                       
+               EX   DE,HL                                       
+               INC  HL                                          
+               POP  BC                                          
+               DJNZ PLOP                                        
+               POP  HL                                          
+               LD   A,(HL)                                      
+               ADD  3                                           
+               JR   SETP+3                                      
+                                                                
+SETP:          LD   E,A                                         
+               ADD  A                                           
+               ADD  E                                           
+               LD   (HL),A                                      
+               JR   ENP                                         
+                                                                
+STRING:        EX   (SP),HL                                     
+               PUSH AF                                          
+               CALL TOKEN0                                      
+               POP  AF                                          
+               EX   (SP),HL                                     
+               RET                                              
+                                                                
+HEX_8:         CALL CHAR                                        
+               DEFB "#"                                         
+               PUSH AF                                          
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               CALL HEX                                         
+               POP  AF                                          
+HEX:           AND  15                                          
+               ADD  &90                                         
+               DAA                                              
+               ADC  64                                          
+               DAA                                              
+               JP   PRINT                                       
+                                                                
+HEX_16:        LD   A,H                                         
+               CALL HEX_8                                       
+               LD   A,L                                         
+               JR   HEX_8+4                                     
+                                                                
+ONEIX:         LD   A,(IX+0)                                    
+               INC  IX                                          
+               RET                                              
+                                                                
+FROMIX:        LD   L,(IX+0)                                    
+               INC  IX                                          
+               LD   H,(IX+0)                                    
+               INC  IX                                          
+               RET                                              
+                                                                
+NUMBERIX:      PUSH IX                                          
+               POP  HL                                          
+               JR   NUMBER                                      
+                                                                
+CISLO:         CALL PRINT                                       
+               CALL HEX_16                                      
+               CALL STRING                                      
+               DEFB 32,160                                      
+               JR   NUMBER+6                                    
+                                                                
+NUMBERFROMIX:  CALL FROMIX                                      
+NUMBER:        BIT  0,(IY+0) ;TEST NA BASE                      
+               JR   Z,HEX_16                                    
+               PUSH DE                                          
+               PUSH HL                                          
+               LD   DE,-10000                                   
+               CALL NUMS                                        
+               LD   DE,-1000                                    
+               CALL NUMS                                        
+NUM8:          LD   DE,-100                                     
+               CALL NUMS                                        
+               LD   DE,-10                                      
+               CALL NUMS                                        
+               LD   E,-1                                        
+               CALL NUMS                                        
+               POP  HL                                          
+               POP  DE                                          
+               RET                                              
+                                                                
+NUMS:          LD   A,"0"-1                                     
+ODR:           INC  A                                           
+               ADD  HL,DE                                       
+               JR   C,ODR                                       
+               SBC  HL,DE                                       
+               JP   PRINT                                       
+                                                                
+               DEFB 3,0,0,1,254                                 
+FLAG:          DEFB 8,16,0,0                                    
+                                                                
+TEXT:          LD   A,(HL)                                      
+               AND  127                                         
+               CP   20                                          
+               JR   NZ,INVR                                     
+               SET  3,(IY+1)                                    
+INVR:          CALL CHAR                                        
+               DEFB 15                                          
+               CALL TOKEN                                       
+               CALL CHAR                                        
+               DEFB 20                                          
+               RET                                              
+TOKEN:         PUSH HL                                          
+               LD   HL,L582B                                    
+TT:            AND  A                                           
+               JR   Z,PT                                        
+               BIT  7,(HL)                                      
+               INC  HL                                          
+               JR   Z,TT+3                                      
+               DEC  A                                           
+               JR   NZ,TT                                       
+PT:            CALL TOKEN0                                      
+               POP  HL                                          
+               RET                                              
+                                                                
+TOKEN0:        LD   A,(HL)                                      
+               AND  127                                         
+               PUSH AF                                          
+               CP   "a"                                         
+               JR   C,$+4                                       
+TOUPPER:       XOR  0                                           
+               CALL PRINT                                       
+               POP  AF                                          
+               XOR  (HL)                                        
+               INC  HL                                          
+               JR   Z,TOKEN0                                    
+               RET                                              
+                                                                
+P_BYTE:        SET  3,(IY+1)                                    
+               BIT  7,(IY+1)                                    
+               JR   Z,OTH                                       
+               SET  5,(IY+1)                                    
+               RES  7,(IY+1)                                    
+BYTE0:         LD   A,20                                        
+               CALL TEXT+1                                      
+L4282:         CALL ONEIX                                       
+               BIT  0,(IY+0)                                    
+               JP   Z,HEX_8                                     
+               PUSH DE                                          
+               PUSH HL                                          
+               LD   L,A                                         
+               LD   H,0                                         
+               JP   NUM8                                        
+                                                                
+OTH:           BIT  6,(IY+1)                                    
+               JR   Z,OTH0                                      
+               CALL BYTE0                                       
+               LD   A,(IX-1)                                    
+               CP   56                                          
+               RET  NZ                                          
+               RES  6,(IY+1)                                    
+               RET                                              
+                                                                
+OTH0:          BIT  5,(IY+1)                                    
+               JR   Z,INSTR                                     
+               RES  5,(IY+1)                                    
+               BIT  0,(IY-5)                                    
+               JR   Z,INSTR                                     
+               LD   BC,&2020                                    
+               JR   CLL+3                                       
+                                                                
+CLL:           LD   BC,&2A20                                    
+               LD   A,C                                         
+               CALL PRINT                                       
+               DJNZ $-3                                         
+               RET                                              
+                                                                
+INSTR:         LD   (IY+2),0                                    
+               RES  3,(IY+1)                                    
+               LD   (ADR+2),IX                                  
+               LD   A,(IX+2)                                    
+               LD   (L444D),A                                   
+               CALL ONEIX                                       
+               LD   DE,L599C                                    
+               CP   &ED                                         
+               LD   HL,L44F4                                    
+               JR   Z,POED                                      
+               CP   &DD                                         
+               JR   NZ,NODD                                     
+               LD   (IY+2),1                                    
+               JR   OTH1                                        
+                                                                
+NODD:          CP   &FD                                         
+               JR   NZ,OTH1+3                                   
+               LD   (IY+2),2                                    
+OTH1:          CALL ONEIX                                       
+               CP   &CB                                         
+               JR   Z,POCB                                      
+                                                                
+               LD   HL,L452D                                    
+               AND  A                                           
+               JR   Z,NOPP                                      
+               PUSH HL                                          
+               LD   HL,L44E3                                    
+               CALL PORO                                        
+               POP  HL                                          
+               JR   NZ,NOPP                                     
+               SET  5,(IY+1)                                    
+NOPP:          LD   DE,L597E                                    
+               JR   OTH2                                        
+                                                                
+POCB:          LD   HL,L44E9                                    
+               LD   A,(IY+2)                                    
+               AND  A                                           
+               JR   Z,POED                                      
+               LD   A,(IX+1)                                    
+               INC  IX                                          
+               JR   OTH2                                        
+                                                                
+POED:          CALL ONEIX                                       
+OTH2:          LD   C,A                                         
+               LD   B,(HL)                                      
+               INC  B                                           
+               JR   Z,NAS0                                      
+               CP   (HL)                                        
+               INC  HL                                          
+               JR   NZ,NAS1                                     
+               CALL TEXT                                        
+               BIT  7,(HL)                                      
+               RET  Z                                           
+                                                                
+               LD   DE,L59AE                                    
+               PUSH DE                                          
+               PUSH DE                                          
+               JR   OTH3                                        
+                                                                
+NAS1:          BIT  7,(HL)                                      
+               INC  HL                                          
+               JR   Z,OTH2+1                                    
+               INC  HL                                          
+               JR   OTH2+1                                      
+                                                                
+NAS0:          LD   A,C                                         
+               INC  HL                                          
+               LD   B,(HL)                                      
+               INC  B                                           
+               JR   NZ,OTH4                                     
+ADR:           LD   IX,0                                        
+               JP   BYTE0                                       
+                                                                
+OTH4:          AND  (HL)                                        
+               INC  HL                                          
+               XOR  (HL)                                        
+               INC  HL                                          
+               JR   Z,OTH5                                      
+               BIT  7,(HL)                                      
+               INC  HL                                          
+               JR   Z,NAS0                                      
+               INC  HL                                          
+               JR   NAS0                                        
+                                                                
+OTH5:          PUSH DE                                          
+               PUSH DE                                          
+               LD   A,(HL)                                      
+               AND  127                                         
+               CP   (HL)                                        
+               JR   Z,OTH3-3                                    
+               INC  HL                                          
+               LD   D,A                                         
+               LD   A,(HL)                                      
+               LD   E,C                                         
+               RRC  E                                           
+               ADD  " "                                         
+               JR   NC,$-4                                      
+               AND  E                                           
+               ADD  D                                           
+               CALL TEXT+1                                      
+OTH3:          INC  HL                                          
+               SET  4,(IY+1)                                    
+               LD   A,(HL)                                      
+               POP  HL                                          
+               PUSH AF                                          
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               AND  15                                          
+               CALL OTH6                                        
+               POP  AF                                          
+               POP  HL                                          
+               AND  15                                          
+               RET  Z                                           
+               BIT  4,(IY+1)                                    
+               JR   Z,OTH6                                      
+               CALL CHAR                                        
+               DEFB ","                                         
+                                                                
+OTH6:          ADD  A                                           
+               RET  Z                                           
+               LD   E,A                                         
+               LD   D,0                                         
+               ADD  HL,DE                                       
+               CALL DEFROMHL                                    
+               LD   A,D                                         
+               AND  A                                           
+               LD   A,E                                         
+               JP   Z,TOKEN                                     
+               EX   DE,HL                                       
+               LD   A,C                                         
+               JP   (HL)                                        
+                                                                
+DEFROMHL:      LD   E,(HL)                                      
+               INC  HL                                          
+               LD   D,(HL)                                      
+               INC  HL                                          
+               RET                                              
+                                                                
+L43A7:                                                          
+INE:           LD   A,81                                        
+               ADD  (IY+2)                                      
+               JP   TOKEN                                       
+                                                                
+L43AF:         LD   B,&4F                                       
+               JR   OTH7                                        
+                                                                
+L43B3:         AND  16                                          
+               LD   A,&5F                                       
+               JP   Z,TOKEN                                     
+               INC  A                                           
+               JP   TOKEN                                       
+                                                                
+L43BC:         LD   B,80                                        
+OTH7:          RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               AND  3                                           
+               CP   2                                           
+               JR   Z,INE                                       
+               ADD  &4D                                         
+               CP   80                                          
+               JP   NZ,TOKEN                                    
+               LD   A,B                                         
+               JP   TOKEN                                       
+                                                                
+L43D1:         CALL ONEIX                                       
+               PUSH IX                                          
+               POP  DE                                          
+               LD   L,A                                         
+               RLA                                              
+               SBC  A                                           
+               LD   H,A                                         
+               ADD  HL,DE                                       
+               JP   NUMBER                                      
+                                                                
+L43DF:         CALL LAVA                                        
+               CALL INE                                         
+               CALL CHAR                                        
+               DEFB ")"                                         
+               RET                                              
+                                                                
+L43E7:         AND  &38                                         
+               CP   C                                           
+               JR   C,$+4                                       
+               AND  &18                                         
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               ADD  84                                          
+               JP   TOKEN                                       
+                                                                
+L43F5:         AND  &38                                         
+               CP   " "                                         
+               JR   NC,L44                                      
+               CP   16                                          
+               LD   A,&4C                                       
+               JP   NZ,TOKEN                                    
+L44:           RES  4,(IY+1)                                    
+               RET                                              
+                                                                
+L4406:         CALL LAVA                                        
+               CALL BYTE0+5                                     
+PRAVA:         CALL CHAR                                        
+               DEFB ")"                                         
+               RET                                              
+                                                                
+LAVA:          CALL CHAR                                        
+               DEFB "("                                         
+               RET                                              
+                                                                
+L4416:         CALL LAVA                                        
+               CALL NUMBERFROMIX                                
+               JR   PRAVA                                       
+                                                                
+L441E:         AND  &38                                         
+               CALL BYTE0+8                                     
+               LD   A,C                                         
+               AND  &38                                         
+               CP   &28                                         
+               JR   NZ,$+7                                      
+               SET  6,(IY+1)                                    
+               RET                                              
+               CP   8                                           
+               RET  NZ                                          
+               SET  7,(IY+1)                                    
+               RET                                              
+                                                                
+L4437:         RRCA                                             
+               RRCA                                             
+               RRCA                                             
+L443A:         AND  7                                           
+               CP   6                                           
+               JR   NZ,OTH9                                     
+L4440:         CALL LAVA                                        
+               CALL INE                                         
+               XOR  A                                           
+               CP   (IY+2)                                      
+               JP   Z,PRAVA                                     
+               DEFB &F6                                         
+L444D:         DEFB &15                                         
+               INC  IX                                          
+               LD   B,"+"                                       
+               JP   P,L4459                                     
+               LD   B,"-"                                       
+               NEG                                              
+L4459:         PUSH AF                                          
+               LD   A,B                                         
+               CALL PRINT                                       
+               POP  AF                                          
+               CALL BYTE0+8                                     
+               JP   PRAVA                                       
+                                                                
+OTH9:          JR   NC,OTHA                                     
+               CP   4                                           
+               JR   C,OTHA                                      
+               CALL OTHA                                        
+               LD   A,C                                         
+               LD   HL,L5826                                    
+               CALL PORO                                        
+               RET  Z                                           
+               LD   A,(IY+2)                                    
+               AND  A                                           
+               RET  Z                                           
+               ADD  &77                                         
+               JP   PRINT                                       
+L5826:         DEFM "utnf"                                      
+               NOP                                              
+                                                                
+OTHA:          ADD  &45                                         
+               JP   TOKEN                                       
+                                                                
+PORO:          CP   (HL)                                        
+               INC  HL                                          
+               JR   C,PORO                                      
+               RET                                              
+                                                                
+L4488:         AND  &38                                         
+               CP   &30                                         
+               JR   NZ,L4493                                    
+               CALL CHAR                                        
+               DEFM "0"                                         
+               RET                                              
+L4493:         AND  &38                                         
+               RRCA                                             
+               RRCA                                             
+               RRCA                                             
+L4498:         ADD  &45                                         
+               JP   TOKEN                                       
+                                                                
+L449D:         RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               AND  7                                           
+               ADD  &30                                         
+               JP   PRINT                                       
+                                                                
+L44A7:         AND  7                                           
+               CP   6                                           
+               JR   Z,L4440                                     
+               LD   B,(IY+2)                                    
+               INC  B                                           
+               DEC  B                                           
+               JP   Z,L443A                                     
+               LD   B,A                                         
+               LD   A,C                                         
+               AND  &C0                                         
+               CP   &40                                         
+               JP   Z,L4440                                     
+               LD   A,B                                         
+               CALL L4498                                       
+               CALL CHAR                                        
+               DEFM ","                                         
+               JP   L4440                                       
+                                                                
+L44C7:         AND  8                                           
+               LD   A,"i"                                       
+               JP   Z,PRINT                                     
+               LD   A,"r"                                       
+               JP   PRINT                                       
+                                                                
+L44D1:         RRCA                                             
+               RRCA                                             
+               RRCA                                             
+               AND  7                                           
+               JR   Z,$+3                                       
+               DEC  A                                           
+               ADD  "0"                                         
+               CP   "3"                                         
+               JP   C,PRINT                                     
+               LD   A,"0"                                       
+               JP   PRINT                                       
+                                                                
+L44E3:         DEFB &E9,&C9,&C7,&C3,&18,0                       
+L44E9:         DEFB 255,&C0,0,&84,&A7,16,0,0,&8B,&43,&21        
+L44F4:         DEFB 255,&C7,64,66,67,&C7,65,67,&35,&CF          
+               DEFB &42,&32,&B6,&CF,&4A,&30,&B6,&CF             
+               DEFB &43,&13,166,&CF                             
+               DEFB &4B,&13,&6A,&C7                             
+               DEFB &44,&26,0,&C7                               
+               DEFB &45,&9D,161,0,&C7                           
+               DEFB &46,&44,128,&F7                             
+               DEFB &47,&13,&7C,&F7                             
+               DEFB &57,&13,&C7,&F7                             
+               DEFB &67,&9B,161,0,&E4                           
+               DEFB 160,&8F,31,0,255                            
+                                                                
+L452D:         DEFB 0,35,8,128,&9A,16,&AB,&B0,&18,&AC           
+               DEFB &B0,&76,&25,&22,&93,&16                     
+               DEFB &32,&93,&13,&2A,&93,&61                     
+               DEFB &3A,&93,&31,&C3,&C0,&C0,&C9,&BF,0           
+               DEFB &CD,&C1,&C0,&D3,&C3,&D3,&D9,1,&DB,&C2,&3D   
+               DEFB &E3,&80,&86,&E9,&C0,&40,&EB,&80,&72         
+               DEFB 243,2,&F9,&93,86,&FB,3,255,&CF,1,&13,&19    
+               DEFB &CF,9,&2F,81,&EF,2,&13,&D3,&EF,10,&13       
+               DEFB &3D,&C7,3,&95,161,16,&C6,4,&95              
+               DEFB 1,64,&C7,6,&13,&4B,&C7,7,&B7,&A7            
+               DEFB 0,&E7,32,&2C,&86,&C0,&40,&13,&4F,&C0,128,&AF
+               DEFB 167,127,&C7,&C0,&3F,128,&CB,&C1,&AD,&C1     
+               DEFB 32,&C7,&C6,&AF,&A7,&7B,&C1,&C0,&BF,&E3,&89  
+               DEFB &C7,&C7,&24,&E0,255                         
+                                                                
+TABL:          DEFS 9                                           
+                                                                
+SCAN:          LD   B,&FE                                       
+               LD   HL,TABL                                     
+LO1:           LD   C,&F9                                       
+               IN   A,(C)                                       
+               AND  &E0                                         
+               LD   (HL),A                                      
+               LD   C,&FE                                       
+               IN   A,(C)                                       
+               AND  31                                          
+               OR   (HL)                                        
+               LD   (HL),A                                      
+               INC  HL                                          
+               SCF                                              
+               RLC  B                                           
+               JR   C,LO1                                       
+               LD   B,255                                       
+               IN   A,(C)                                       
+               AND  30                                          
+               OR   &E1                                         
+               LD   (HL),A                                      
+               PUSH IX                                          
+               LD   IX,TABL                                     
+               SET  0,(IX+0)                                    
+               SET  1,(IX+7)                                    
+               POP  IX                                          
+               LD   DE,TABL+9                                   
+               LD   B,9                                         
+LO2:           DEC  DE                                          
+               LD   A,(DE)                                      
+               INC  A                                           
+               JR   NZ,LO3                                      
+               DJNZ LO2                                         
+               CALL SHIFT                                       
+               LD   E,255                                       
+               RET                                              
+LO3:           DEC  A                                           
+               LD   C,9                                         
+LO4:           DEC  C                                           
+               RRA                                              
+               JR   C,LO4                                       
+               LD   A,C                                         
+               ADD  A                                           
+               ADD  A                                           
+               ADD  A                                           
+               ADD  C                                           
+               SUB  B                                           
+               LD   E,A                                         
+SHIFT:         LD   BC,&FEFE                                    
+               IN   A,(C)                                       
+               LD   D,1                                         
+               AND  D                                           
+               RET  Z                                           
+               LD   B,&7F                                       
+               IN   A,(C)                                       
+               RRCA                                             
+               AND  D                                           
+               RET  Z                                           
+               LD   D,0                                         
+               RET                                              
+                                                                
+INKEY:         CALL SCAN                                        
+               LD   A,E                                         
+               INC  E                                           
+               RET  Z                                           
+               DEC  E                                           
+               RET                                              
+;                                                               
+ASCII:         LD   A,13                                        
+               LD   B,34                                        
+               DEC  B                                           
+               RET  Z                                           
+               LD   B,8                                         
+TK:            PUSH BC                                          
+               CALL INKEY                                       
+               POP  BC                                          
+               JR   Z,L45D8                                     
+               DEC  C                                           
+               JR   NZ,TK                                       
+               DJNZ TK                                          
+               LD   HL,ASCII+3                                  
+               LD   (HL),1                                      
+L45D8:         LD   B,16                                        
+               LD   H,B                                         
+               LD   D,H                                         
+               LD   E,L                                         
+               LDDR                                             
+               CALL INKEY                                       
+               JR   Z,L460C                                     
+               DEFB 254                                         
+LASTKEY:       DEFB " "                                         
+               JR   Z,ASCII                                     
+               LD   (ASCII+3),A                                 
+               LD   (LASTKEY),A                                 
+               LD   HL,KLAVESY                                  
+               LD   A,D                                         
+               AND  A                                           
+               JR   Z,OK0                                       
+               LD   HL,KLAV2                                    
+OK0:           LD   D,0                                         
+               ADD  HL,DE                                       
+OKK:           LD   A,(HL)                                      
+               LD   (ASCII+1),A                                 
+               RET                                              
+                                                                
+L460C:         LD   (LASTKEY),A                                 
+               JR   OKK+1                                       
+                                                                
+RETAZEC:       LD   A,(HL)                                      
+               CALL PRINT                                       
+               INC  HL                                          
+               DJNZ RETAZEC                                     
+               RET                                              
+                                                                
+ENTER:         CALL TAB                                         
+               DEFB &F9                                         
+               LD   HL,EDBUF                                    
+IPO:           LD   A,4                                         
+               INC  A                                           
+               LD   B,A                                         
+               SUB  8                                           
+               CPL                                              
+               LD   C,A                                         
+               CALL RETAZEC                                     
+               LD   A,&C3                                       
+PLI:           CALL PRINT                                       
+               LD   A," "                                       
+               DEC  C                                           
+               JR   NZ,PLI                                      
+               LD   A,(IY+0)                                    
+               CPL                                              
+               AND  1                                           
+               LD   B,A                                         
+               RET                                              
+                                                                
+INPUT:         XOR  A                                           
+               LD   (IPO+1),A                                   
+IN0:           CALL ENTER                                       
+               CALL KEY                                         
+               LD   HL,IPO+1                                    
+               CP   12    ; DELETE KOD                          
+               JR   NZ,L4655                                    
+               DEC  (HL)                                        
+               JP   P,IN0                                       
+               INC  (HL)                                        
+               JR   IN0                                         
+                                                                
+L4655:         LD   C,A                                         
+               CALL ALFA                                        
+               JR   NC,BETA                                     
+               BIT  0,B                                         
+               JR   NZ,HEXB                                     
+               CP   10                                          
+               JR   NC,IN0                                      
+HEXB:          LD   A,(HL)                                      
+               ADD  B                                           
+               CP   5                                           
+               JR   NC,IN0                                      
+               INC  (HL)                                        
+               LD   L,(HL)                                      
+               LD   H,0                                         
+               LD   DE,EDBUF                                    
+               ADD  HL,DE                                       
+               LD   (HL),C                                      
+               JR   IN0                                         
+                                                                
+ALFA:          CP   "A"                                         
+               JR   C,da                                        
+               CP   "Z"+1                                       
+               JR   NC,da                                       
+               CCF                                              
+               RET                                              
+                                                                
+da:            SUB  "0"                                         
+               CCF                                              
+               RET  NC                                          
+               CP   10                                          
+               RET  C                                           
+               SUB  7+" "                                       
+               CP   10                                          
+               CCF                                              
+               RET  NC                                          
+               CP   16                                          
+               RET                                              
+                                                                
+BETA:          LD   B,(HL)                                      
+               PUSH BC                                          
+               LD   (HL),0                                      
+               CALL ENTER                                       
+               CALL STRING                                      
+               DEFB 26,160                                      
+               POP  BC                                          
+               LD   A,B                                         
+               LD   (IPO+1),A                                   
+               LD   DE,EDBUF+1                                  
+               LD   HL,0                                        
+RATAJ:         DEC  B                                           
+               LD   A,C                                         
+               LD   (ST2+1),HL                                  
+               RET  M  ; NAVRAT NAPRAZDNO                       
+               PUSH DE                                          
+               ADD  HL,HL                                       
+               LD   E,L                                         
+               LD   D,H                                         
+               ADD  HL,HL                                       
+               ADD  HL,HL                                       
+               BIT  0,(IY+0)                                    
+               JR   NZ,$+4                                      
+               LD   E,L                                         
+               LD   D,H                                         
+               ADD  HL,DE                                       
+               POP  DE                                          
+               LD   A,(DE)                                      
+               INC  DE                                          
+               CALL ALFA                                        
+               CALL AHL                                         
+               JR   RATAJ                                       
+                                                                
+LBB:           LD   HL,L59E6                                    
+               ADD  A                                           
+AHL:           ADD  L                                           
+               LD   L,A                                         
+               RET  NC                                          
+               INC  H                                           
+               RET                                              
+                                                                
+EXCH:          LD   BC,(STACK+4)                                
+               LD   DE,(STACK+6)                                
+               LD   HL,(STACK+8)                                
+               EXX                                              
+               LD   BC,(STACK+16)                               
+               LD   DE,(STACK+18)                               
+               LD   HL,(STACK+20)                               
+                                                                
+               LD   (STACK+4),BC                                
+               LD   (STACK+6),DE                                
+               LD   (STACK+8),HL                                
+               EXX                                              
+               LD   (STACK+16),BC                               
+               LD   (STACK+18),DE                               
+               LD   (STACK+20),HL                               
+               RET                                              
+                                                                
+STACK:                                                          
+RRR:           EQU  STACK+2                                     
+                                                                
+               DEFS 2                                           
+               DEFS 2                                           
+               DEFS 20                                          
+REGS:                                                           
+                                                                
+ZNAK:          CP   " "                                         
+               JR   C,BOD                                       
+               CP   128                                         
+               JP   C,PRINT                                     
+               CP   160                                         
+               JP   NC,PRINT                                    
+BOD:           AND  128                                         
+               OR   "."                                         
+               JP   PRINT                                       
+                                                                
+MEMO:          PUSH HL                                          
+               LD   HL,(POS)                                    
+               PUSH HL                                          
+               LD   HL,33*3+1024                                
+               LD   (POS),HL                                    
+               LD   A,&63                                       
+               CALL TOKEN                                       
+               CALL SPC                                         
+               IN   A,(250)                                     
+               CALL BYTE0+8                                     
+                                                                
+               LD   HL,33*3+2048                                
+               LD   (POS),HL                                    
+               LD   A,&64                                       
+               CALL TOKEN                                       
+               CALL SPC                                         
+               IN   A,(251)                                     
+               CALL BYTE0+8                                     
+                                                                
+               LD   HL,33*3+2048+1024                           
+               LD   (POS),HL                                    
+               LD   A,&65                                       
+               CALL TOKEN                                       
+               CALL SPC                                         
+               IN   A,(252)                                     
+               CALL BYTE0+8                                     
+                                                                
+               LD   HL,33*3+4096                                
+               LD   (POS),HL                                    
+               LD   A,&71                                       
+               CALL TOKEN                                       
+               CALL SPC                                         
+               BIT  0,(IY-3)                                    
+               JR   Z,NIEJE                                     
+                                                                
+               CALL STRING                                      
+               DEFB "y","e","s"+128                             
+               JR   fin                                         
+                                                                
+NIEJE:         CALL STRING                                      
+               DEFB "n","o",160                                 
+                                                                
+fin:           LD   HL,33*3+4096+1024                           
+               LD   (POS),HL                                    
+               LD   A,&72                                       
+               CALL TOKEN                                       
+               CALL SPC                                         
+               LD   A,(IY-1)                                    
+               CALL BYTE0+8                                     
+                                                                
+               LD   HL,33*3+4096+2048                           
+               LD   (POS),HL                                    
+               CALL STRING                                      
+               DEFB "O","P","T","I"+128                         
+               CALL SPC                                         
+               LD   A,(IY-5)                                    
+               CALL BYTE0+8                                     
+                                                                
+               POP  HL                                          
+               LD   (POS),HL                                    
+               POP  HL                                          
+               RET                                              
+                                                                
+MAIN:          CALL OBNOV                                       
+               CALL MEMO                                        
+               LD   HL,(MEM)                                    
+               DEC  HL                                          
+               DEC  HL                                          
+               LD   B,6                                         
+PMEM:          CALL STRING                                      
+               DEFB 1,&94                                       
+               CALL NUMBER                                      
+               CALL SPC                                         
+               LD   A,(HL)                                      
+               CALL BYTE0+8                                     
+               CALL SPC                                         
+               LD   A,(HL)                                      
+               CALL ZNAK                                        
+               INC  HL                                          
+               DJNZ PMEM                                        
+               CALL TAB                                         
+               DEFB &73                                         
+               CALL CHAR                                        
+               DEFB &BE                                         
+               CALL TAB                                         
+               DEFB 127                                         
+               CALL CHAR                                        
+               DEFB &BC                                         
+               CALL TAB                                         
+               DEFB &EA                                         
+               LD   E,255                                       
+                                                                
+PREG:          LD   HL,STACK                                    
+               LD   IX,TREG                                     
+               EX   AF,AF'                                      
+               XOR  A                                           
+               EX   AF,AF'                                      
+                                                                
+               LD   D,6                                         
+               LD   C,0                                         
+                                                                
+DL:            LD   A,C                                         
+               ADD  4                                           
+               LD   C,A                                         
+               LD   (POS+1),A                                   
+               EX   AF,AF'                                      
+               LD   (POS),A                                     
+               EX   AF,AF'                                      
+               CALL ONL+3                                       
+               PUSH DE                                          
+               CALL STRING                                      
+               DEFB &BA                                         
+               CALL DEFROMHL                                    
+               EX   DE,HL                                       
+               CALL NUMBER                                      
+               EX   DE,HL                                       
+               POP  DE                                          
+               DEC  D                                           
+               JR   NZ,DL          ; skok ak nieje 6 riadkov    
+                                                                
+               EX   AF,AF'                                      
+               CP   9*3                                         
+               JR   Z,NOR                                       
+               LD   A,9*3                                       
+               EX   AF,AF'                                      
+               JR   DL-4                                        
+                                                                
+NOR:           LD   B,4                                         
+               CALL STRING                                      
+               DEFB 1,&83                                       
+               LD   HL,L479C                                    
+L5F:           LD   A,(STACK+10)                                
+               AND  (HL)                                        
+               CALL L4774                                       
+               CALL SPC                                         
+               INC  HL                                          
+               DJNZ L5F                                         
+               CALL CHAR                                        
+               NOP                                              
+               BIT  1,(IY+0)                                    
+L4774:         JR   NZ,ONL                                      
+               CALL ONL+3                                       
+               INC  IX                                          
+               INC  IX                                          
+               RET                                              
+                                                                
+ONL:           CALL ONL-5                                       
+               DEC  E                                           
+               PUSH DE                                          
+               LD   DE,&8002                                    
+               JR   Z,$+4                                       
+               LD   D,0                                         
+L8A:           LD   A,(IX+0)                                    
+               CP   " "                                         
+               JR   Z,$+3                                       
+               OR   D                                           
+               CALL PRINT                                       
+               INC  IX                                          
+               DEC  E                                           
+               JR   NZ,L8A                                      
+               POP  DE                                          
+               RET                                              
+                                                                
+L479C:         DEFB 64,1,4,128                                  
+                                                                
+MOVE:          SCF                                              
+MOVE1:         CALL L4A89                                       
+               CALL PARAMS                                      
+               DEFB &F3                                         
+               POP  DE                                          
+               POP  BC                                          
+               POP  HL                                          
+               LD   A,B                                         
+               OR   C                                           
+               RET  Z                                           
+               SBC  HL,DE                                       
+               RET  Z                                           
+               ADD  HL,DE                                       
+               JR   C,$+5                                       
+               LDIR                                             
+               RET                                              
+                                                                
+               ADD  HL,BC                                       
+               DEC  HL                                          
+               EX   DE,HL                                       
+               ADD  HL,BC                                       
+               DEC  HL                                          
+               EX   DE,HL                                       
+               LDDR                                             
+               RET                                              
+;                                                               
+; HLAVNA PREVADZACIA SLUCKA PROGRAMU                            
+;                                                               
+LOOP:          CALL NZ,CLS                                      
+               CALL MAIN           ;OBNOVI OBRAZ                
+               CALL INPUT                                       
+LOOP1:         RES  3,(IY+0)                                    
+               LD   HL,TABCOM                                   
+               CALL CFIND                                       
+               JR   NC,MONIT-3                                  
+               CALL INPUT+4                                     
+               JR   LOOP1                                       
+                                                                
+               CALL DEFROMHL-1                                  
+MONIT:         LD   SP,MYSP                                     
+               RES  1,(IY-3)                                    
+               BIT  3,(IY+0)                                    
+               JR   LOOP                                        
+                                                                
+QUIT:          LD   A,31                                        
+               OUT  (251),A                                     
+               JP   $+3+16384                                   
+Q2:            LD   A,31                                        
+               OUT  (250),A                                     
+VR:            LD   A,&FE                                       
+               OUT  (252),A                                     
+               LD   HL,MONIT                                    
+               LD   (VECT),HL                                   
+               SET  3,(IY+0)                                    
+STC:           LD   SP,&4EF2                                    
+               EI                                               
+               RET                                              
+                                                                
+MENEJ:         LD   HL,(MEM)                                    
+               DEC  HL                                          
+               LD   (MEM),HL                                    
+               RET                                              
+                                                                
+NEXT:          LD   HL,(MEM1)                                   
+               LD   (MEM),HL                                    
+               RET                                              
+                                                                
+POKE:          LD   A,(ST2+1)                                   
+               LD   HL,IPO+1                                    
+               DEC  (HL)                                        
+               INC  (HL)                                        
+               LD   HL,(MEM)                                    
+               JR   Z,$+3                                       
+               LD   (HL),A                                      
+               INC  HL                                          
+               LD   (MEM),HL                                    
+               RET                                              
+                                                                
+DPOKE:         CALL POKE                                        
+               LD   A,(ST2+2)                                   
+               JR   POKE+3                                      
+                                                                
+TBAS:          LD   (NES+1),A                                   
+               LD   A,&F7                                       
+               IN   A,(&F9)                                     
+               AND  32                                          
+               JR   NZ,NES                                      
+               LD   A,&24                                       
+               JR   NES+2                                       
+NES:           LD   A,0                                         
+               CP   &24                                         
+               RET                                              
+                                                                
+TAB:           EX   (SP),HL                                     
+               PUSH AF                                          
+               LD   A,(HL)                                      
+               PUSH BC                                          
+               AND  31                                          
+               LD   B,A                                         
+               ADD  A                                           
+               ADD  B                                           
+               LD   (POS),A                                     
+               LD   A,(HL)                                      
+               AND  &E0                                         
+               RLCA                                             
+               RLCA                                             
+               RLCA                                             
+               AND  7                                           
+               ADD  A                                           
+               ADD  A                                           
+               LD   (POS+1),A                                   
+               POP  BC                                          
+               INC  HL                                          
+               POP  AF                                          
+               EX   (SP),HL                                     
+               RET                                              
+                                                                
+PARAMS:        XOR  A                                           
+               EX   AF,AF'                                      
+               CALL TAB                                         
+               DEFB &F3                                         
+               PUSH BC                                          
+               LD   BC,&C20                                     
+               CALL CLL+3                                       
+               POP  BC                                          
+; VYMAZALA SA ED. OBLAST                                        
+               CALL TBAS                                        
+               JP   Z,MONIT                                     
+; SKOK AK ESCAPE                                                
+               CALL TAB                                         
+               DEFB &F3                                         
+               EX   AF,AF'                                      
+               ADD  A                                           
+               CCF                                              
+               RET  NC                                          
+                                                                
+               POP  HL                                          
+               LD   A,(HL)                                      
+               EX   AF,AF'                                      
+               LD   A,(HL)                                      
+               INC  HL                                          
+               PUSH HL                                          
+                                                                
+               AND  127                                         
+               CALL TOKEN                                       
+               CALL INPUT                                       
+               EX   (SP),HL                                     
+               PUSH HL                                          
+               JR   PARAMS+2                                    
+                                                                
+REGISTR:       LD   E,1                                         
+               PUSH DE                                          
+               CALL PREG                                        
+               CALL KEY                                         
+               POP  DE                                          
+               LD   D,0                                         
+               CALL TBAS                                        
+               RET  Z                                           
+               CP   13                                          
+               JR   NZ,LAD                                      
+               LD   A,E                                         
+               CP   13                                          
+               JR   NC,L92                                      
+               PUSH DE                                          
+               CALL PARAMS                                      
+               DEFB &E9                                         
+               POP  BC                                          
+               POP  DE                                          
+               LD   HL,STACK-2                                  
+               ADD  HL,DE                                       
+               ADD  HL,DE                                       
+               LD   (HL),C                                      
+               INC  HL                                          
+               LD   (HL),B                                      
+               JR   REGISTR+2                                   
+                                                                
+L92:           CP   17                                          
+               JR   NZ,LA0                                      
+               LD   A,(IY+0)                                    
+               XOR  2                                           
+               LD   (IY+0),A                                    
+               JR   REGISTR+2                                   
+                                                                
+LA0:           LD   HL,L479C-13                                 
+               ADD  HL,DE                                       
+               LD   A,(STACK+10)                                
+               XOR  (HL)                                        
+               LD   (STACK+10),A                                
+               JR   REGISTR+2                                   
+                                                                
+LAD:           CALL L48CD                                       
+               JR   Z,REGISTR+2                                 
+               AND  127                                         
+               CP   11             ; HORE                       
+               JR   NZ,LBF                                      
+               DEC  E                                           
+               JR   NZ,REGISTR+2                                
+               LD   E,17                                        
+               JR   REGISTR+2                                   
+                                                                
+LBF:           CP   10             ; DOLE                       
+               JP   NZ,REGISTR+2                                
+               INC  E                                           
+               LD   A,E                                         
+               CP   18                                          
+               JR   C,REGISTR+2                                 
+               LD   E,1                                         
+               JR   REGISTR+2                                   
+                                                                
+L48CD:         CP   &24                                         
+               RET  NZ                                          
+               CALL BASE                                        
+               CP   A                                           
+               RET                                              
+                                                                
+BASE:          LD   A,(IY+0)                                    
+               XOR  1                                           
+               LD   (IY+0),A                                    
+               RET                                              
+                                                                
+TEXTV:         SCF                                              
+TEXTV1:        LD   HL,TEXTY                                    
+               JR   COMON                                       
+                                                                
+DUMPV:         SCF                                              
+DUMPV1:        LD   HL,DUMPS                                    
+               JR   COMON                                       
+                                                                
+DISAV:         SCF                                              
+DISAV1:        LD   HL,LINE-1                                   
+                                                                
+COMON:         LD   A,(HL)                                      
+               INC  HL                                          
+               LD   (LENINS),A                                  
+               LD   (VEKTOR+1),HL                               
+               BIT  0,(IY-3)                                    
+               JR   Z,NETL                                      
+               SET  1,(IY-3)                                    
+NETL:          LD   HL,(MEM)                                    
+               JR   NC,$+7                                      
+               CALL PARAMS                                      
+               POP  HL                                          
+               POP  HL                                          
+               LD   (NB+2),HL                                   
+NB:            LD   IX,0                                        
+               SET  3,(IY+0)                                    
+               LD   (IY+1),0                                    
+NB1:           CALL CLS                                         
+               LD   (L58+1),IX                                  
+               LD   BC,&800                                     
+               PUSH BC                                          
+VEKTOR:        CALL LINE                                        
+               POP  BC                                          
+               DEC  C                                           
+               INC  C                                           
+               JR   Z,L34                                       
+               LD   HL,(L58+1)                                  
+               LD   A,(LENINS)                                  
+               CALL AHL                                         
+               LD   (L58+1),HL                                  
+L34:           DJNZ L6B                                         
+               BIT  1,(IY-3)                                    
+               CALL NZ,CRLF-1                                   
+               CALL KEY                                         
+               CALL TBAS                                        
+               JR   NZ,NOE                                      
+               RES  1,(IY-3)                                    
+               RET                                              
+                                                                
+NOE:           AND  127                                         
+               CP   8                                           
+               JR   Z,NB                                        
+               CP   10                                          
+               JR   Z,NB1                                       
+               CP   "n"                                         
+               JR   NZ,L53                                      
+               CALL HLADAJ                                      
+               LD   HL,(MEM)                                    
+               JR   NB-3                                        
+                                                                
+L53:           SUB  11                                          
+               JR   NZ,L68                                      
+L58:           LD   HL,0                                        
+               LD   A,B                                         
+               LD   A,(LENINS)                                  
+               CP   1                                           
+               LD   C,A                                         
+               SBC  HL,BC                                       
+               PUSH HL                                          
+               POP  IX                                          
+               JR   NB1                                         
+                                                                
+L68:           LD   BC,&101                                     
+L6B:           CALL LF                                          
+               JR   VEKTOR-1                                    
+                                                                
+DUMPS:         DEFB 5                                           
+               CALL NUMBERIX                                    
+               LD   BC,&503                                     
+LZZ:           LD   A,C                                         
+               ADD  4                                           
+               LD   C,A                                         
+               CALL PRINT                                       
+               CALL ONEIX                                       
+               PUSH AF                                          
+               CALL BYTE0+8                                     
+               LD   A," "                                       
+               SUB  B                                           
+               CALL PRINT                                       
+               POP  AF                                          
+               CALL ZNAK                                        
+               DJNZ LZZ                                         
+               RET                                              
+                                                                
+TEXTY:         DEFB 25                                          
+               CALL NUMBERIX                                    
+               CALL CHAR                                        
+               DEFB 7                                           
+               LD   B,25                                        
+L9C:           CALL ONEIX                                       
+               CALL ZNAK                                        
+               DJNZ L9C                                         
+               RET                                              
+                                                                
+SCHOVAJ:       CALL SAVEMEM                                     
+               CALL PARAMS                                      
+               DEFB &E2                                         
+               POP  HL                                          
+               LD   (MEM),HL                                    
+               RET                                              
+                                                                
+SCREEN:        CALL PARAMS                                      
+               DEFB &EA                                         
+               POP  HL                                          
+               LD   A,(IY-1)                                    
+               AND  &E0                                         
+               LD   H,A                                         
+               LD   A,L                                         
+               AND  30                                          
+               OR   H                                           
+               LD   (IY-1),A                                    
+               RET                                              
+                                                                
+MODE:          CALL PARAMS                                      
+               DEFB &ED                                         
+               POP  HL                                          
+               LD   A,L                                         
+               DEC  A                                           
+               AND  3                                           
+               RLCA                                             
+               RLCA                                             
+               RLCA                                             
+               RLCA                                             
+               RLCA                                             
+               LD   L,A                                         
+               LD   A,(IY-1)                                    
+               AND  &9F                                         
+               OR   L                                           
+               LD   (IY-1),A                                    
+               RET                                              
+                                                                
+CHANGE:        LD   A,(IY-1)                                    
+               OUT  (252),A                                     
+               RET                                              
+                                                                
+CHANGE1:       LD   A,(IY-4)                                    
+               OUT  (252),A                                     
+               RET                                              
+                                                                
+LMPR:          CALL PARAMS                                      
+               DEFB &F0                                         
+               POP  HL                                          
+               LD   A,L                                         
+               OUT  (251),A                                     
+               LD   (IY-2),A                                    
+               RET                                              
+                                                                
+MYSCR:         CALL PARAMS                                      
+               DEFB &EA                                         
+               CALL CLS                                         
+               POP  HL                                          
+               LD   A,(IY-4)                                    
+               AND  &E0                                         
+               LD   H,A                                         
+               LD   A,L                                         
+               AND  30                                          
+               OR   H                                           
+               LD   (IY-4),A                                    
+               OUT  (252),A                                     
+               CALL CLS                                         
+               RET                                              
+                                                                
+THIRD:         CALL CLS                                         
+               LD   A,3                                         
+               INC  A                                           
+               AND  3                                           
+               CP   1                                           
+               ADC  0                                           
+               LD   (THIRD+4),A                                 
+               LD   B,A                                         
+               LD   A,&80                                       
+INCA:          DEC  B                                           
+               JR   Z,DOP                                       
+               ADD  &20                                         
+               JR   INCA                                        
+                                                                
+PRN:           LD   A,1                                         
+               XOR  (IY-3)                                      
+               LD   (IY-3),A                                    
+               RET                                              
+                                                                
+DOP:           LD   H,A                                         
+               LD   L,0                                         
+               LD   (ADRV),HL                                   
+               RET                                              
+                                                                
+DISK:          CALL PARAMS                                      
+               DEFB &61,&6F,&EE                                 
+               POP  BC                                          
+               POP  DE                                          
+               POP  HL                                          
+               LD   D,E                                         
+               LD   E,C                                         
+               LD   A,D                                         
+               AND  &7F                                         
+               CP   84                                          
+               RET  NC             ; VELKA STOPA                
+               LD   A,E                                         
+               AND  A                                           
+               RET  Z                                           
+               CP   11                                          
+               RET  NC                                          
+               SCF                                              
+               RET                                              
+                                                                
+BAZA:          LD   B,&E0                                       
+               LD   A,D                                         
+               AND  128                                         
+               JR   Z,$+4                                       
+               LD   A,4                                         
+               OR   B                                           
+               PUSH AF                                          
+               LD   (SEKT+1),A                                  
+               LD   (ADR1+1),A                                  
+               INC  A                                           
+               LD   (ADR4+1),A                                  
+               INC  A                                           
+               LD   (ADR5+1),A                                  
+               LD   A,D                                         
+               AND  127                                         
+               LD   D,A                                         
+               POP  AF                                          
+               RET                                              
+                                                                
+SETSS:         LD   A,E                                         
+ADR5:          OUT  (&E2),A                                     
+SEKTQ:         LD   A,&F7                                       
+               IN   A,(&F9)                                     
+               AND  32                                          
+               JR   NZ,SEKT                                     
+               POP  AF                                          
+               JP   ERRO                                        
+SEKT:          IN   A,(&E0)                                     
+               BIT  0,A                                         
+               JR   NZ,SEKTQ                                    
+ADR4:          IN   A,(&E1)                                     
+               CP   D                                           
+               RET  Z                                           
+               LD   A,&7B                                       
+               JR   NC,$+4                                      
+               LD   A,&5B                                       
+ADR1:          OUT  (&E0),A                                     
+               LD   B,20                                        
+               DJNZ $                                           
+               JR   SEKTQ                                       
+                                                                
+READ:          CALL DISK                                        
+               RET  NC                                          
+                                                                
+               CALL BAZA                                        
+               LD   (ADR2+1),A                                  
+               LD   (MKE+1),A                                   
+               ADD  3                                           
+               LD   (ADR6+1),A                                  
+LOA:           CALL SETSS                                       
+               LD   A,128                                       
+ADR2:          OUT  (&E0),A                                     
+               LD   B,20                                        
+               DJNZ $                                           
+ADR6:          LD   BC,&E3                                      
+               JR   MKE                                         
+                                                                
+VST:           INI                                              
+MKE:           IN   A,(&E0)                                     
+               BIT  1,A                                         
+               JR   NZ,VST                                      
+               BIT  0,A                                         
+               JR   NZ,MKE                                      
+               AND  %11011                                      
+               RET  Z                                           
+                                                                
+ERRO:          CALL CLS                                         
+               CALL STRING                                      
+               DEFM "Disc error "                               
+               DEFB 161                                         
+               CALL KEY                                         
+               RET                                              
+                                                                
+WRITE:         CALL DISK                                        
+               RET  NC                                          
+                                                                
+               CALL BAZA                                        
+               LD   (MK1+1),A                                   
+               LD   (EEE+1),A                                   
+               ADD  3                                           
+               LD   (EE1+1),A                                   
+               CALL SETSS                                       
+                                                                
+               LD   A,160                                       
+EEE:           OUT  (&E0),A                                     
+               LD   B,20                                        
+               DJNZ $                                           
+EE1:           LD   BC,&E3                                      
+               JR   MK1                                         
+                                                                
+VYS:           OUTI                                             
+MK1:           IN   A,(&E0)                                     
+               BIT  1,A                                         
+               JR   NZ,VYS                                      
+               BIT  0,A                                         
+               JR   NZ,MK1                                      
+               AND  %1001100                                    
+               RET  Z                                           
+               JR   ERRO                                        
+                                                                
+OPTION:        CALL PARAMS                                      
+               DEFB &F3                                         
+               POP  HL                                          
+               LD   A,L                                         
+               LD   (IY-5),A                                    
+               RET                                              
+                                                                
+COMPARE:       SCF                                              
+               CALL L4A89                                       
+               CALL PARAMS                                      
+               DEFB &F3                                         
+               POP  DE                                          
+               POP  BC                                          
+               POP  HL                                          
+CLOP:          LD   A,B                                         
+               OR   C                                           
+               RET  Z                                           
+               LD   A,(DE)                                      
+               CP   (HL)                                        
+               JR   NZ,OHLAS                                    
+TUT:           DEC  BC                                          
+               INC  HL                                          
+               INC  DE                                          
+               JR   CLOP                                        
+                                                                
+OHLAS:         PUSH BC                                          
+               PUSH HL                                          
+               PUSH DE                                          
+               CALL CLS                                         
+               CALL STRING                                      
+               DEFM "Compare error at"                          
+               DEFB 160                                         
+               POP  HL                                          
+               PUSH HL                                          
+               CALL NUMBER                                      
+               CALL LF                                          
+               CALL STRING                                      
+               DEFM "Continue "                                 
+               DEFB "?"+128                                     
+               CALL KEY                                         
+               POP  DE                                          
+               POP  HL                                          
+               POP  BC                                          
+               SET  3,(IY+0)                                    
+               CP   "y"                                         
+               JR   Z,TUT                                       
+               RET                                              
+                                                                
+L4A89:         JR   NC,LA9                                      
+               CALL PARAMS                                      
+               DEFB &61,&E8                                     
+               POP  HL                                          
+               POP  BC                                          
+               INC  HL                                          
+               SBC  HL,BC                                       
+L95:           POP  DE                                          
+               PUSH BC                                          
+               PUSH HL                                          
+               PUSH DE                                          
+               RET                                              
+                                                                
+LA9:           CALL PARAMS                                      
+               DEFB &61,&E7                                     
+               POP  HL                                          
+               POP  BC                                          
+               JR   L95                                         
+;                                                               
+CLS:           LD   E,0                                         
+               LD   HL,(ADRV)                                   
+               LD   BC,&2000                                    
+               IN   A,(251)                                     
+               EX   AF,AF'                                      
+               LD   A,(FLAG-4)                                  
+               OUT  (251),A                                     
+               CALL FIL0                                        
+               EX   AF,AF'                                      
+               OUT  (251),A                                     
+               CALL TAB                                         
+               NOP                                              
+               RET                                              
+                                                                
+FIL0:          LD   A,B                                         
+               OR   C                                           
+               RET  Z                                           
+               LD   (HL),E                                      
+               INC  HL                                          
+               DEC  BC                                          
+               JR   FIL0                                        
+                                                                
+OBNOV:         CALL TAB                                         
+               NOP                                              
+               XOR  A                                           
+               LD   (IY+1),A                                    
+               LD   IX,(MEM)                                    
+               CALL LINE                                        
+; OCHRANA !!!!!!!                                               
+;                                                               
+; testuje sa (#5ee9)=#5ee9                                      
+;                                                               
+               LD   HL,(DEFROMHL-1)                             
+               CALL DEFROMHL                                    
+               LD   (MEM1),IX                                   
+               XOR  A                                           
+               SBC  HL,DE                                       
+               ADD  HL,DE                                       
+               JP   Z,DEFROMHL-1   ; ODSTARTUJ MODIFY RUTINU    
+               RET                                              
+                                                                
+FILL:          SCF                                              
+FILL1:         CALL L4A89                                       
+               CALL PARAMS                                      
+               DEFB &E9                                         
+               POP  DE                                          
+               POP  BC                                          
+               POP  HL                                          
+               JR   FIL0                                        
+                                                                
+SAVEMEM:       CALL L412B                                       
+               LD   HL,L59E5                                    
+               LD   A,(HL)                                      
+               CP   16                                          
+               JR   NC,WIEWMEM     ; VNORENIE MA 8 UROVNI       
+               INC  (HL)                                        
+               CALL LBB                                         
+               DEFB 17                                          
+MEM:           DEFW 0                                           
+               LD   (HL),E                                      
+               INC  HL                                          
+               LD   (HL),D                                      
+               RET                                              
+                                                                
+WIEWMEM:       CALL L412B          ; UKAZ VNORENIA              
+               JR   KEY                                         
+                                                                
+WIEWSP:        LD   A,5                                         
+               LD   HL,(STACK)                                  
+               CALL L412B+5                                     
+;                                  test klavesnice + echo       
+KEY:           EXX                                              
+               XOR  A                                           
+               PUSH AF                                          
+               OUT  (254),A                                     
+TSK:           CALL L45D8                                       
+               LD   D,A                                         
+               CP   255                                         
+               JR   Z,TSK                                       
+               POP  AF                                          
+               LD   B,50                                        
+ZVUK:          XOR  16                                          
+               OUT  (254),A                                     
+               LD   C,10                                        
+               DEC  C                                           
+               JR   NZ,$-1                                      
+               DJNZ ZVUK                                        
+               LD   A,D                                         
+               EXX                                              
+               RET                                              
+                                                                
+CALC:          CALL PARAMS                                      
+               DEFB &61,&E9                                     
+               CALL CLS                                         
+               POP  HL                                          
+               LD   (FIRST),HL                                  
+               POP  HL                                          
+               LD   (SECOND),HL                                 
+               LD   DE,L59CA                                    
+               CALL KOP+3                                       
+               LD   L,C                                         
+               LD   H,B                                         
+               CALL KOP                                         
+               ADD  HL,BC                                       
+               CALL KOP                                         
+               AND  A                                           
+               SBC  HL,BC                                       
+               CALL KOP                                         
+               LD   L,H                                         
+               LD   H,0                                         
+               CALL KOP                                         
+               LD   H,0                                         
+               CALL KOP                                         
+               LD   H,C                                         
+               CALL KOP                                         
+LFD:           SET  3,(IY+0)                                    
+               JR   KEY                                         
+                                                                
+KOP:           CALL LF                                          
+               EX   DE,HL                                       
+               CALL TOKEN0                                      
+               EX   DE,HL                                       
+               LD   A,5                                         
+               CALL CISLO                                       
+               LD   A,L                                         
+               CPL                                              
+               LD   L,A                                         
+               LD   A,H                                         
+               CPL                                              
+               LD   H,A                                         
+               INC  HL                                          
+               LD   A,19                                        
+               CALL CISLO                                       
+               DEFB 33                                          
+FIRST:         DEFW 0                                           
+               DEFB 1                                           
+SECOND:        DEFW 0                                           
+               RET                                              
+                                                                
+FIND:          CALL TAB                                         
+               NOP                                              
+               CALL CLL                                         
+               CALL TAB                                         
+               NOP                                              
+                                                                
+               LD   IX,L59F6+10                                 
+               XOR  A                                           
+               LD   B,10                                        
+MAK:           DEC  IX                                          
+               LD   (IX+0),A                                    
+               DJNZ MAK                                         
+                                                                
+               LD   B,5                                         
+                                                                
+DALSI:         CALL SPC                                         
+               LD   A,"6"                                       
+               SUB  B                                           
+               CALL PRINT                                       
+               CALL CHAR                                        
+               DEFM "/"                                         
+                                                                
+               PUSH BC                                          
+               LD   HL,(POS)                                    
+                                                                
+               PUSH HL                                          
+               CALL INPUT                                       
+               CALL TBAS                                        
+               JR   Z,KON                                       
+                                                                
+               CP   "z"                                         
+               JR   Z,ZNM                                       
+                                                                
+               LD   A,(IPO+1)                                   
+               AND  A                                           
+               JR   NZ,ANY                                      
+                                                                
+               POP  HL                                          
+               LD   (POS),HL                                    
+               CALL STRING                                      
+               DEFM "AN"                                        
+               DEFB "Y"+128                                     
+               JR   OST                                         
+                                                                
+ZNM:           PUSH AF                                          
+               CALL STRING                                      
+               DEFB 21                                          
+               DEFM "Cha"                                       
+               DEFB "r"+128                                     
+               CALL KEY                                         
+               LD   L,A                                         
+               POP  AF                                          
+                                                                
+ANY:           LD   (IX+0),L                                    
+               LD   A,L                                         
+               POP  HL                                          
+               LD   (POS),HL                                    
+               CALL BYTE0+8                                     
+OST:           INC  IX                                          
+               POP  BC                                          
+               DJNZ DALSI                                       
+;                                                               
+HLADAJ:        LD   HL,(MEM)                                    
+               INC  HL                                          
+               LD   (MEM),HL                                    
+               LD   DE,L59F6                                    
+               LD   B,5                                         
+HLAD:          LD   A,(DE)                                      
+               AND  A                                           
+               INC  DE                                          
+               JR   Z,$+3                                       
+               CP   (HL)                                        
+               INC  HL                                          
+               JR   NZ,HLADAJ                                   
+               DJNZ HLAD                                        
+               RET                                              
+                                                                
+KON:           POP  AF                                          
+               POP  AF                                          
+               JR   HLADAJ                                      
+                                                                
+SETPOINT:      LD   HL,(MEM)                                    
+               LD   (MEM2),HL                                   
+               RET                                              
+                                                                
+BREAKPOINT:    LD   HL,(MEM)                                    
+               LD   DE,USR+8                                    
+               LD   BC,3                                        
+               PUSH BC                                          
+               PUSH DE                                          
+               PUSH HL                                          
+               LDIR                                             
+               POP  HL                                          
+               PUSH HL                                          
+               LD   (HL),195                                    
+               INC  HL                                          
+               LD   (HL),USR+4\256                              
+               INC  HL                                          
+               LD   (HL),USR+4/256                              
+               LD   A,255                                       
+               CALL MAKER                                       
+               LD   HL,MEM2-1                                   
+               CALL SPUST                                       
+               LD   A,255                                       
+               CALL MAKER                                       
+               POP  DE                                          
+               POP  HL                                          
+               POP  BC                                          
+               LDIR                                             
+               RET                                              
+                                                                
+VOLAJ:         LD   A,&CD                                       
+               JR   JUMP+2                                      
+                                                                
+JUMP:          LD   A,&C3                                       
+               LD   (USR+8),A                                   
+               CALL PARAMS                                      
+               DEFB &73,&EB                                     
+               POP  HL                                          
+               POP  HL                                          
+               LD   (USR+9),HL                                  
+               LD   A,C                                         
+               CP   "y"                                         
+                                                                
+               RET  NZ                                          
+               LD   HL,USR+8                                    
+                                                                
+SPUST:         LD   C,3                                         
+               SET  3,(IY+0)                                    
+               JP   DOTRACE                                     
+;                                  TRASOVANIE                   
+TSLOW:         CALL SLOW                                        
+               JR   TFAST+3                                     
+                                                                
+TFAST:         CALL FAST                                        
+               CALL TAB                                         
+               DEFB &F9                                         
+                                                                
+               CALL STRING                                      
+               DEFM "Trac"                                      
+               DEFB "e"+128                                     
+                                                                
+MAKE:          CALL OBNOV                                       
+               LD   A,&F7                                       
+               IN   A,(&F9)                                     
+               AND  32                                          
+               RET  Z              ; ESCAPE = END               
+               LD   A,&FD                                       
+               IN   A,(&FE)                                     
+               AND  8                                           
+               JR   NZ,TRASUJ                                   
+               CALL L45D8                                       
+               LD   HL,TRASUJ+1    ; "F"                        
+               INC  (HL)                                        
+TRASUJ:        LD   A,0                                         
+               RRCA                                             
+               CALL NC,MAIN+3                                   
+               CALL ONE                                         
+               JR   MAKE                                        
+                                                                
+EDITOR:        CALL MAIN                                        
+               CALL TAB                                         
+               DEFB &F9                                         
+               CALL STRING                                      
+               DEFM "Tex"                                       
+               DEFB "t"+128                                     
+                                                                
+TLOOP:         CALL KEY                                         
+               CP   &24            ; KONIEC ?                   
+               JR   Z,PRES                                      
+               CALL TBAS                                        
+               RET  Z              ; ANO                        
+PRES:          LD   HL,(MEM)                                    
+               CP   11                                          
+               DEC  HL                                          
+               JR   Z,ULZ                                       
+               CP   10                                          
+               INC  HL                                          
+               JR   Z,ULZ-1                                     
+               CP   12                                          
+               JR   NZ,ULZ-2                                    
+               LD   (HL)," "                                    
+               DEC  HL                                          
+               JR   ULZ                                         
+                                                                
+               LD   (HL),A                                      
+               INC  HL                                          
+ULZ:           LD   (MEM),HL                                    
+               JR   EDITOR                                      
+                                                                
+WIEWF:         CALL CLS                                         
+               LD   IX,L59F6                                    
+               LD   B,5                                         
+                                                                
+PM:            LD   A,"6"                                       
+               SUB  B                                           
+               CALL PRINT                                       
+               CALL CHAR                                        
+               DEFM ">"                                         
+               LD   A,(IX+0)                                    
+               CALL BYTE0+8                                     
+               CALL LF                                          
+               INC  IX                                          
+               DJNZ PM                                          
+               CALL STRING                                      
+               DEFM "Debugger code:"                            
+               DEFB 160                                         
+               LD   HL,START                                    
+               CALL NUMBER                                      
+               CALL CHAR                                        
+               DEFB "-"                                         
+               LD   HL,END                                      
+               CALL NUMBER                                      
+               CALL STRING                                      
+               DEFM " in page"                                  
+               DEFB 160                                         
+               IN   A,(250)                                     
+               INC  A                                           
+               AND  31                                          
+               CALL BYTE0+8                                     
+               CALL LF                                          
+               CALL STRING                                      
+               DEFM "Current entry point:"                      
+               DEFB 160                                         
+               LD   HL,(MEM2)                                   
+               CALL NUMBER                                      
+               JP   LFD                                         
+                                                                
+CFIND:         PUSH DE                                          
+               AND  A                                           
+               JR   Z,NASIEL-1                                  
+                                                                
+CF1:           CALL DEFROMHL                                    
+               CP   (HL)                                        
+               JR   Z,NASIEL                                    
+                                                                
+               LD   C,A                                         
+               LD   A,(HL)                                      
+               AND  A                                           
+               LD   A,C                                         
+               INC  HL                                          
+               JR   NZ,CF1                                      
+                                                                
+               SCF                                              
+                                                                
+NASIEL:        EX   DE,HL                                       
+               POP  DE                                          
+               RET                                              
+                                                                
+L4E6A:         CALL L4EDC          ; PODMIENENY NAVRAT          
+               RET  NZ                                          
+               JP   L4F49                                       
+                                                                
+L4E71:         AND  &18                                         
+               CALL L4EDC                                       
+               RET  NZ                                          
+               JR   LZF                                         
+                                                                
+BLOP:          LD   HL,STACK+5     ; DJNZ                       
+               DEC  (HL)                                        
+               JR   Z,LD7                                       
+LZF:           LD   A,(DE)         ; RELATIVNE SKOKY            
+               LD   L,A                                         
+               ADD  A                                           
+               SBC  A                                           
+               LD   H,A                                         
+               ADD  HL,DE                                       
+               INC  HL                                          
+               LD   (MEM),HL                                    
+HALTUJ:        RET                                              
+                                                                
+PSKOK:         CALL L4EDC          ; PODM. SKOK                 
+               RET  NZ                                          
+HARDS:         EX   DE,HL                                       
+               JR   LA4                                         
+                                                                
+SKAC:          CALL SAVEMEM                                     
+               LD   HL,(MEM)                                    
+               INC  HL                                          
+               JR   LA4                                         
+                                                                
+CALUJ:         LD   HL,L59E5                                    
+               LD   A,(HL)                                      
+               DEC  A                                           
+               RET  M                                           
+               LD   (HL),A                                      
+               CALL LBB                                         
+LA4:           CALL DEFROMHL                                    
+               JP   L4F52                                       
+                                                                
+KROKCALL:      CALL L4EDC          ; KROKUJ INSTRUKCIU CALL     
+               RET  NZ             ; PODMIENENE                 
+HARDC:         DEFB 195                                         
+L4EAF:         DEFW STORE                                       
+                                                                
+STORE:         EX   DE,HL          ; CALL                       
+               CALL DEFROMHL                                    
+STOR0:         LD   (MEM),DE                                    
+               EX   DE,HL                                       
+               LD   HL,(STACK)                                  
+               DEC  HL                                          
+               LD   (HL),D                                      
+               DEC  HL                                          
+               LD   (HL),E                                      
+               LD   (STACK),HL                                  
+               RET                                              
+                                                                
+RETURN:        LD   HL,(STACK)                                  
+               LD   E,(HL)                                      
+               INC  HL                                          
+               LD   D,(HL)                                      
+               INC  HL                                          
+               LD   (STACK),HL                                  
+               LD   (MEM),DE                                    
+               RET                                              
+                                                                
+JPHL:          LD   L,(IX+0)       ; JP (HL)                    
+               LD   H,(IX+1)                                    
+               LD   (MEM),HL                                    
+               RET                                              
+                                                                
+ZAKAZ:         RES  1,(IY+0)       ; DI                         
+               JR   LD7                                         
+                                                                
+POVOL:         SET  1,(IY+0)       ; EI                         
+LD7:           DEFB 33                                          
+MEM1:          DEFW 0                                           
+               LD   (MEM),HL                                    
+               RET                                              
+; simuluje sa skok na podmienku Z = true and false              
+L4EDC:         AND  &38                                         
+               OR   &C2                                         
+               LD   (TYP),A                                     
+               LD   HL,(STACK+10)                               
+               PUSH HL                                          
+               POP  AF                                          
+TYP:           JP   Z,FALSE                                     
+               OR   255                                         
+               JR   LD7                                         
+                                                                
+FALSE:         CP   A                                           
+               RET                                              
+                                                                
+               DEFB 195                                         
+L4EF2:         DEFW L4EF4                                       
+                                                                
+L4EF4:         DEC  DE                                          
+               LD   A,(DE)                                      
+               INC  DE                                          
+               AND  &38                                         
+               EX   DE,HL                                       
+               LD   E,A                                         
+               LD   D,0                                         
+               JR   STOR0                                       
+                                                                
+               DEFB 195                                         
+MEM2:          DEFW 0                                           
+                                                                
+FAST:          LD   HL,L4F30                                    
+               LD   E,L                                         
+               LD   D,H                                         
+               JR   SLOW+6                                      
+                                                                
+SLOW:          LD   HL,L4EF4                                    
+               LD   DE,STORE                                    
+                                                                
+               LD   (L4EF2),HL                                  
+               LD   (L4EAF),DE                                  
+ONE:           BIT  3,(IY+1)                                    
+               JR   Z,L36                                       
+               CALL MAKER-2                                     
+               JR   LD7                                         
+                                                                
+VELKE:         LD   HL,TOUPPER+1                                
+               LD   A," "                                       
+               XOR  (HL)                                        
+               LD   (HL),A                                      
+               RET                                              
+                                                                
+L4F30:         LD   A,C                                         
+               LD   (RRR),A                                     
+               JR   LAC                                         
+                                                                
+L36:           LD   HL,(MEM)                                    
+               LD   A,(HL)                                      
+               CP   &ED                                         
+               INC  HL                                          
+               JR   NZ,NOED                                     
+               LD   A,(HL)                                      
+               AND  &C7                                         
+               CP   &45                                         
+               JR   NZ,LAC                                      
+               CALL R2             ; RETI, RETN                 
+L4F49:         LD   HL,(STACK)     ; RETURN                     
+               CALL DEFROMHL                                    
+               LD   (STACK),HL                                  
+L4F52:         EX   DE,HL                                       
+               LD   (MEM),HL                                    
+               RET                                              
+                                                                
+               LD   A,1                                         
+MAKER:         PUSH HL                                          
+               LD   HL,RRR                                      
+               ADD  (HL)                                        
+               XOR  (HL)                                        
+               AND  &7F                                         
+               XOR  (HL)                                        
+               LD   (HL),A                                      
+               POP  HL                                          
+               RET                                              
+                                                                
+SIMUL:         LD   A,(RRR)                                     
+               LD   C,A                                         
+               CALL MAKER-2                                     
+               XOR  A                                           
+               OR   (IY+2)                                      
+               CALL NZ,MAKER-2     ; ZA INDEXOVE +1             
+               DEC  DE                                          
+               LD   A,(DE)                                      
+               INC  DE                                          
+               JP   (HL)                                        
+                                                                
+R2:            LD   A,2                                         
+               JR   MAKER                                       
+                                                                
+NOED:          LD   IX,STACK+12                                 
+               CP   &DD                                         
+               JR   Z,NOIX                                      
+               INC  IX                                          
+               INC  IX                                          
+               CP   &FD                                         
+               JR   Z,NOIX                                      
+               LD   IX,STACK+8                                  
+               DEC  HL                                          
+NOIX:          LD   A,(HL)                                      
+               INC  HL                                          
+               EX   DE,HL                                       
+               LD   HL,L40E0                                    
+               CALL CFIND                                       
+               JR   NC,SIMUL                                    
+               AND  &E7                                         
+               CP   32                                          
+               LD   HL,L4E71                                    
+               JR   Z,SIMUL                                     
+               AND  &C7                                         
+               LD   HL,L40F4                                    
+               CALL CFIND                                       
+               JR   NC,SIMUL                                    
+                                                                
+LAC:           LD   DE,(MEM)                                    
+               CALL LD7                                         
+               EX   DE,HL                                       
+               DEFB 14                                          
+LENINS:        DEFB 1                                           
+DOTRACE:       LD   B,0                                         
+               LD   DE,USR                                      
+               BIT  1,(IY+0)                                    
+               LD   A,&FB                                       
+               JR   NZ,ENABLE                                   
+               LD   A,&F3                                       
+ENABLE:        LD   (DE),A                                      
+               INC  DE                                          
+               LDIR                ; PRENES INSTRUKCIU          
+               EX   DE,HL                                       
+               LD   (HL),195                                    
+               INC  HL                                          
+               LD   DE,REST                                     
+               LD   (HL),E                                      
+               INC  HL                                          
+               LD   (HL),D                                      
+               LD   (ST2+1),SP                                  
+               LD   HL,MAKER                                    
+               LD   (VECT),HL                                   
+               LD   A,-24                                       
+               CALL MAKER                                       
+               LD   SP,STACK+2                                  
+               POP  HL                                          
+               LD   A,L                                         
+               LD   R,A                                         
+               LD   A,H                                         
+               LD   I,A                                         
+               POP  BC                                          
+               POP  DE                                          
+               POP  HL                                          
+               POP  AF                                          
+               EXX                                              
+               EX   AF,AF'                                      
+               POP  IX                                          
+               POP  IY                                          
+               POP  BC                                          
+               POP  DE                                          
+               POP  HL                                          
+               POP  AF                                          
+               EXX                                              
+               EX   AF,AF'                                      
+               LD   SP,(STACK)                                  
+USR:           DEFS 12                                          
+               DEFS 40             ; STACK                      
+MYSP:                                                           
+                                                                
+L59F6:         DEFS 10             ; FIND BUFER                 
+                                                                
+EDBUF:         DEFM ">     "        ; EDITOR BUFER              
+                                                                
+L582B:         DEFB "e","x"+128    ; TOKENY                     
+               DEFB "e","x","x"+128                             
+               DEFB "d","i"+128                                 
+               DEFB "e","i"+128                                 
+               DEFB "r","l","c"+128                             
+               DEFB "r","r","c"+128                             
+               DEFB "r","l"+128                                 
+               DEFB "r","r"+128                                 
+               DEFB "s","l","a"+128                             
+               DEFB "s","r","a"+128                             
+               DEFB "s","l","i","a"+128                         
+               DEFB "s","r","l"+128                             
+               DEFB "b","i","t"+128                             
+               DEFB "r","e","s"+128                             
+               DEFB "s","e","t"+128                             
+               DEFB "l","d","i"+128                             
+               DEFB "c","p","i"+128                             
+               DEFB "i","n","i"+128                             
+               DEFB "o","u","t","i"+128                         
+               DEFB "l","d"+128                                 
+               DEFB "d","b"+128                                 
+               DEFB "i","n","c"+128                             
+               DEFB "d","e","c"+128                             
+               DEFB "l","d","d"+128                             
+               DEFB "c","p","d"+128                             
+               DEFB "i","n","d"+128                             
+               DEFB "o","u","t","d"+128                         
+               DEFB "r","r","d"+128                             
+               DEFB "r","l","d"+128                             
+               DEFB "r","e","t","n"+128                         
+               DEFB "r","e","t","i"+128                         
+               DEFB "l","d","i","r"+128                         
+               DEFB "c","p","i","r"+128                         
+               DEFB "i","n","i","r"+128                         
+               DEFB "o","t","i","r"+128                         
+               DEFB "n","o","p"+128                             
+               DEFB "r","s","t"+128                             
+               DEFB "h","a","l","t"+128                         
+               DEFB "n","e","g"+128                             
+               DEFB "l","d","d","r"+128                         
+               DEFB "c","p","d","r"+128                         
+               DEFB "i","n","d","r"+128                         
+               DEFB "o","t","d","r"+128                         
+               DEFB "d","j","n","z"+128                         
+               DEFB "j","r"+128                                 
+               DEFB "p","o","p"+128                             
+               DEFB "p","u","s","h"+128                         
+               DEFB "a","d","d"+128                             
+               DEFB "a","d","c"+128                             
+               DEFB "s","u","b"+128                             
+               DEFB "s","b","c"+128                             
+               DEFB "a","n","d"+128                             
+               DEFB "x","o","r"+128                             
+               DEFB "o","r"+128                                 
+               DEFB "c","p"+128                                 
+               DEFB "r","l","c","a"+128                         
+               DEFB "r","r","c","a"+128                         
+               DEFB "r","l","a"+128                             
+               DEFB "r","r","a"+128                             
+               DEFB "d","a","a"+128                             
+               DEFB "c","p","l"+128                             
+               DEFB "s","c","f"+128                             
+               DEFB "c","c","f"+128                             
+               DEFB "r","e","t"+128                             
+               DEFB "j","p"+128                                 
+               DEFB "c","a","l","l"+128                         
+               DEFB "i","n"+128                                 
+               DEFB "o","u","t"+128                             
+               DEFB "i","m"+128                                 
+               DEFB "b"+128                                     
+               DEFB "c"+128                                     
+               DEFB "d"+128                                     
+               DEFB "e"+128                                     
+               DEFB "h"+128                                     
+               DEFB "l"+128                                     
+               DEFB "f"+128                                     
+               DEFB "a"+128                                     
+               DEFB "b","c"+128                                 
+               DEFB "d","e"+128                                 
+               DEFB "a","f"+128                                 
+               DEFB "s","p"+128                                 
+               DEFB "h","l"+128                                 
+               DEFB "i","x"+128                                 
+               DEFB "i","y"+128                                 
+               DEFB "n","z"+128                                 
+               DEFB "z"+128                                     
+               DEFB "n","c"+128                                 
+               DEFB "c"+128                                     
+               DEFB "p","o"+128                                 
+               DEFB "p","e"+128                                 
+               DEFB "p"+128                                     
+               DEFB "m"+128                                     
+               DEFB "(","c",")"+128                             
+               DEFB "(","s","p",")"+128                         
+               DEFB "a","f","'"+128                             
+               DEFB "(","b","c",")"+128                         
+               DEFB "(","d","e",")"+128                         
+                                                                
+               DEFM " Firs"        ; 61                         
+               DEFB "t"+128                                     
+                                                                
+               DEFM "Memor"        ; 62                         
+               DEFB "y"+128                                     
+                                                                
+               DEFM "LMP"          ; 63                         
+               DEFB "R"+128                                     
+                                                                
+               DEFM "HMP"          ; 64                         
+               DEFB "R"+128                                     
+                                   ; 65                         
+               DEFM "VMP"                                       
+               DEFB "R"+128                                     
+                                                                
+               DEFM "Ente"         ; 66                         
+               DEFB "r"+128                                     
+                                                                
+               DEFM "Lengh"        ; 67                         
+               DEFB "t"+128,21                                  
+                                                                
+               DEFM "Las"          ; 68                         
+               DEFB "t"+128,21                                  
+                                                                
+               DEFM "Wit"          ; 69                         
+               DEFB "h"+128                                     
+                                                                
+               DEFM "Scree"        ; 6A                         
+               DEFB "n"+128,22                                  
+                                                                
+               DEFB "Y","e","s"+128,21                          
+                                                                
+               DEFM "Mas"                                       
+               DEFB "k"+128                                     
+                                                                
+               DEFM "Mod"         ; 6D                          
+               DEFB "e"+128                                     
+                                                                
+               DEFM "Secto"       ;6E                           
+               DEFB "r"+128                                     
+                                                                
+               DEFM "Track"       ; 6F                          
+               DEFB 160                                         
+                                                                
+               DEFM "Pag"                                       
+               DEFB "e"+128                                     
+                                                                
+               DEFM "PRN"                                       
+               DEFB 160                                         
+                                                                
+               DEFM "SCR"         ; 72                          
+               DEFB "N"+128,23                                  
+                                                                
+               DEFB "T","o"+128   ; 73                          
+                                                                
+L597E:         DEFB &F8,&F9                                     
+                                                                
+L5980:         DEFW L43BC,L43AF,&4C                             
+               DEFW L4437,L43A7,L43D1,L43F5,L43E7               
+               DEFW NUMBERFROMIX,L4416,L4282,L4406              
+               DEFW L43B3,L441E                                 
+                                                                
+L599C:         DEFW L443A,L44A7,L449D,&5C                       
+               DEFW L4493,L4488,L43BC,L44C7,L44D1               
+L59AE:         DEFW L4282,L4416,&51                             
+               DEFW &4C,L43DF,80,L43A7                          
+               DEFW &4E,&5D,&4F,&5E                             
+               DEFW L43D1,NUMBERFROMIX,L4406                    
+                                                                
+; TEXT PRE KALKULACIE                                           
+                                                                
+L59CA:         DEFB 7                                           
+               DEFM "+H"                                        
+               DEFB 14                                          
+               DEFM "+D"                                        
+               DEFB 20                                          
+               DEFM "-H"                                        
+               DEFB 28                                          
+               DEFM "-D"                                        
+               DEFB 1,&C1,&C2,&41,&2B,&C2,&41,&2D,&C2,&41       
+               DEFB 200,65,&CC,&42,&C1                          
+                                                                
+L59E5:         NOP                                              
+L59E6:         DEFS 32    ; BUFER NA USCHOVU MEM                
+                                                                
+FONT:          MDAT "FONT"                                      
+END:                                                            
