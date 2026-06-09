@@ -1,0 +1,14 @@
+; Block definitions for ARCHIV.BIN (load &6D00)
+; DISK ARCHIVE v2.0, RUMSOFT / Marian Krivos 1993
+hdr:         start 0x6D02 end 0x6D0F type bytedata
+str_6d94:    start 0x6D94 end 0x6E0D type bytedata
+str_6e5c:    start 0x6E5C end 0x6EA4 type bytedata
+str_7021:    start 0x7021 end 0x7035 type bytedata
+str_7374:    start 0x7374 end 0x737F type bytedata
+str_7386:    start 0x7386 end 0x7391 type bytedata
+str_7395:    start 0x7395 end 0x73A2 type bytedata
+str_7939:    start 0x7939 end 0x7944 type bytedata
+str_7958:    start 0x7958 end 0x7964 type bytedata
+str_7982:    start 0x7982 end 0x798D type bytedata
+credits:     start 0x7F77 end 0x8000 type bytedata
+font:        start 0x8000 end 0x840C type bytedata

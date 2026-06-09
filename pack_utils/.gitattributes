@@ -1,0 +1,19 @@
+# Preservation repo: keep every file byte-for-byte as it is on disk.
+# Disable all line-ending normalization (the 1993 .txt notes use CRLF, and the
+# binaries / disk image must never be touched).
+* -text
+
+# Be explicit about the binary originals so GitHub treats them as binary.
+*.mgt   binary
+*.BIN   binary
+ARCHIV     binary
+UNPAK      binary
+IMPLODER   binary
+COMPRES    binary
+DEC        binary
+PASS       binary
+PASS1      binary
+MDOS23     binary
+CrunchCode binary
+SCREENCOM1 binary
+Lib?v21    binary

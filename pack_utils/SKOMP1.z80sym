@@ -1,0 +1,24 @@
+; Symboly pre SKOMP1.BIN
+; --- hlavickove / self-modifikovane premenne (&4003..&400B) ---
+hP_PAGE:  equ 0x4003   ; vypocitane cislo SAM stranky pre cielovu adresu
+hP_OFFS:  equ 0x4004   ; vypocitany offset v sekcii (&8000..&BFFF)
+hP_LEN:   equ 0x4006   ; dlzka dat (podla rezimu z &5A40)
+hP_FLAG:  equ 0x4008   ; priznak (default 0)
+hP_DEST:  equ 0x4009   ; cielova adresa rozbalenia (default &8000)
+hP_BYTE:  equ 0x400b   ; pracovny bajt (RLE marker)
+; --- SAM Coupe porty ---
+LMPR:     equ 0x00fa   ; Low Memory Page Register
+HMPR:     equ 0x00fb   ; High Memory Page Register
+VMPR:     equ 0x00fc   ; Video Memory Page Register
+; --- SAM ROM rutiny / sys premenne ---
+ROM_0004: equ 0x0004
+ROM_005C: equ 0x005c
+ROM_012D: equ 0x012d
+ROM_015A: equ 0x015a
+SVAR_5A40: equ 0x5a40  ; rezim (0/1/>=2 -> dlzka 1B00/3800/6000)
+SRC_55D8:  equ 0x55d8  ; zdroj 40B tabulky
+; --- hlavne rutiny ---
+DEPACKER:  equ 0x40ff  ; sablona depackera (kopiruje sa a spusta na &8000)
+COMPRESS:  equ 0x41c5  ; kompresor: screen(&8000) -> komprimat(&E000)
+C_FLUSH:   equ 0x4240  ; pomocna: zapis RLE behu / dlzky do vystupu
+C_FLUSH2:  equ 0x4247

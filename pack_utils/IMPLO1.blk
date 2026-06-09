@@ -1,0 +1,6 @@
+; Block definitions for IMPLO1.BIN (TURBO IMPLODER V1.0, load &4000)
+t_preklad:  start 0x4003 end 0x4024 type bytedata
+t_title:    start 0x4033 end 0x4047 type bytedata
+t_rumsoft:  start 0x404B end 0x4062 type bytedata
+t_rights:   start 0x4065 end 0x4078 type bytedata
+t_prompts:  start 0x407C end 0x4136 type bytedata

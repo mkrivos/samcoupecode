@@ -1,0 +1,7 @@
+; Symbols for 'UNPAK .BIN' (UNPACK ARCHIVE 2.0, RUMSOFT / Marian Krivos)
+LMPR:    equ 0x00fa
+HMPR:    equ 0x00fb
+VMPR:    equ 0x00fc
+IO_FE:   equ 0x00fe
+main:        equ 0x414d   ; entry (JP &414D)
+print_inline: equ 0x45a4  ; print FF-terminated inline string after the CALL

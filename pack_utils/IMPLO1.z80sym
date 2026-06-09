@@ -1,0 +1,30 @@
+; Symbols for IMPLO1.BIN (TURBO IMPLODER V1.0, RUMSOFT & SAPOSOFT '93)
+; Load &4000.
+
+; --- SAM Coupe I/O ports ---
+LMPR:        equ 0x00fa
+HMPR:        equ 0x00fb
+VMPR:        equ 0x00fc
+IO_FE:       equ 0x00fe
+
+; --- entry / UI driver ---
+start:       equ 0x43fb   ; entry (JP &43FB): read params, run compressor(s), save
+
+; --- compressors (selected by Mode bits: bit0=shrink, bit1=implode) ---
+shrink:      equ 0x4554   ; Mode 1 SHRINK wrapper (RLE)
+shrink_core: equ 0x4608   ; SHRINK main loop
+shrink_scan: equ 0x4665   ; scan for a run of >=4 equal bytes (CF=1 if found)
+implode:     equ 0x476a   ; Mode 2 IMPLODE wrapper (LZ77)
+implode_core: equ 0x483e  ; IMPLODE main loop (cpir longest-match search)
+implode_fin: equ 0x4911   ; IMPLODE finalise / flush
+
+; --- output bit/byte emitters (compressed stream writers) ---
+emit_init:   equ 0x49e3
+emit_flush:  equ 0x49d1
+emit:        equ 0x49ee
+
+; --- helpers ---
+addr_to_page: equ 0x4702  ; convert a Z80 address to SAM (page,offset)
+page_fix:    equ 0x470c
+input_field: equ 0x416e   ; edit an input field on screen
+parse_num:   equ 0x4212   ; parse a number from the field

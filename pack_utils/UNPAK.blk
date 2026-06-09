@@ -1,0 +1,5 @@
+; Block definitions for 'UNPAK .BIN' (UNPACK ARCHIVE 2.0, load &4100)
+hdr:         start 0x4106 end 0x414D type bytedata
+str_42bc:    start 0x42BC end 0x42EC type bytedata
+str_431c:    start 0x431C end 0x4363 type bytedata
+credits:     start 0x48C8 end 0x494E type bytedata

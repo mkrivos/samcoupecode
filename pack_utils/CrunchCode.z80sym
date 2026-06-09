@@ -1,0 +1,21 @@
+; Symbols for CrunchCode (foreign SAM Coupe statistical cruncher, load &8000)
+LMPR:    equ 0x00fa
+HMPR:    equ 0x00fb
+VMPR:    equ 0x00fc
+IO_F8:   equ 0x00f8
+; --- entries ---
+crunch:        equ 0x800e   ; pack
+decrunch:      equ 0x8025   ; unpack (depacker)
+decrunch_out:  equ 0x803f   ; unpack, then stream result out via OTDR to port &F8
+; --- packer (frequency analysis + 2-bit rank coding) ---
+crunch_core:   equ 0x807f
+rle_pass:      equ 0x80b0   ; RLE pre-pass
+run_count:     equ 0x80d2   ; count a run of equal bytes
+emit_codes:    equ 0x814c   ; write the 2-bit rank-code stream
+bit_write:     equ 0x81bb   ; write 2 bits to the output bitstream
+histogram:     equ 0x81cb   ; count byte frequencies into &8400 (256 x 16-bit)
+find_escape:   equ 0x81f1   ; pick the least-frequent byte (-> &9C40)
+build_ranktab: equ 0x8212   ; bytes sorted by frequency (-> &9C41, up to 84)
+; --- depacker ---
+decrunch_core: equ 0x8256
+bit_read:      equ 0x82fd   ; read a 2-bit code from the bitstream

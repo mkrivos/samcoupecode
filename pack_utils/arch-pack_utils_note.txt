@@ -1,0 +1,27 @@
+    UTILS is the selfextracting archive which contains a lot of usefull         
+programs. The only problem with it is that after you download it and            
+copy to SAM disk it don't want to unpack... I didn't know why, and now          
+I'm still not sure but I know what to do to unpack it. And don't worry,         
+you will have to do it only with this archive because inside UTILS there        
+is program you may use to unpack archive without using selfextract procedure.   
+                                                                                
+    As you probably know SamDos (and MasterDos) uses a few bytes in             
+directory entry as it's special purpose flags. There is a field which in        
+my copy of Technical Manual is called 'MGT future and past' this field          
+begins 210 bytes after start of dir entry. After I've copyied UTILS to          
+PC disk (using KE_DISK) and back to Sam disk there are the following values     
+in this field (decimal):                                                        
+  0, 19, 56, 45,  3,142,255,255,  1, 99...                                      
+When I've looked into original version of UTILS there were :                    
+  0, 19, 56, 45,  0,189,255,255,  1,  0...                                      
+I don't know what is the meaning of these flags, but after I changed it         
+(read dir entry to memory, change it and write back to disk) and command        
+   LOAD "UTILS" CODE 32000,file_len,32000                                       
+it started and after a while I've got a message: INSERT DISK...                 
+I know that it may be a problem, but when you have all utils on your            
+disk you may unpack archives witchout such a troubles.                          
+                                                                                
+    If someone know the meaning of those flags, please send description         
+to me.                                                                          
+                                                                                
+                              MAT of ESI  (93-12-06)                            

@@ -1,0 +1,6 @@
+; Definicia blokov pre SKOMP1.BIN (load &4000)
+hdr:     start 0x4003 end 0x400c type bytedata   ; hlavicka / self-mod premenne
+ver:     start 0x40e9 end 0x40ff type bytedata   ; text " *** Version 2.0 *** "
+rumsoft: start 0x4196 end 0x419d type bytedata   ; "RUMSOFT"
+table:   start 0x419d end 0x41c5 type bytedata   ; 40B tabulka (kopiruje sa z &55D8)
+sig:     start 0x427c end 0x42a6 type bytedata   ; podpis "PREKLAD: 30.09.93 ..."

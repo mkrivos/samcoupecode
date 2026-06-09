@@ -1,0 +1,33 @@
+; Symbols for ARCHIV.BIN (DISK ARCHIVE v2.0, RUMSOFT / Marian Krivos 1993)
+; Load &6D00.
+
+; --- SAM Coupe I/O ports ---
+LMPR:       equ 0x00fa   ; Low Memory Page Register
+HMPR:       equ 0x00fb   ; High Memory Page Register
+VMPR:       equ 0x00fc   ; Video Memory Page Register
+IO_FE:      equ 0x00fe   ; border / keyboard / speaker
+
+; --- SAM ROM ---
+ROM_016F:   equ 0x016f   ; ROM routine (called from the mode/border setup)
+
+; --- confidently identified routines ---
+main:         equ 0x6d1e ; real entry (JP &400C-style: JR here from &6D00)
+set_border:   equ 0x6d0f ; OUT (&FE),&27  (border/keyboard line)
+init:         equ 0x717c ; one-time init (called once before the main loop)
+get_command:  equ 0x7269 ; read menu key -> bitmask in A (see dispatch below)
+scan_keys:    equ 0x727c ; scan keyboard rows &FE/&FD -> 6-bit mask (bit7=pressed)
+print_inline: equ 0x734d ; print FF-terminated string that follows the CALL
+print_str:    equ 0x73ab ; print string at (HL) until 0xFF
+
+; --- main-loop command dispatch (bit in A from get_command -> handler) ---
+; Mapping confirmed: keys map F1..F6 -> bits 0..5 (anchored by F5 EXIT = bit4).
+f1_scan:     equ 0x71da  ; F1 SCAN     - read disk directory
+f2_link:     equ 0x7232  ; F2 LINK     - load selected files into memory
+f3_compress: equ 0x77c5  ; F3 COMPRESS - compress loaded files (Mode/Speed/Skip)
+f4_store:    equ 0x7016  ; F4 STORE    - save archive ("Enter file name:")
+f6_all:      equ 0x6ea9  ; F6 ALL      - select all files
+; (F5 EXIT = bit4 -> &6D7A, handled inline in MAIN)
+
+; --- data blocks (mirror ARCHIV.blk) ---
+font:       equ 0x8000   ; 8x8 font, 8 bytes/char from ASCII space
+credits:    equ 0x7f77   ; "Press a key ... RUMSOFT ARCHIVE SYSTEM 2.0 / Marian KRIVOS ..."
